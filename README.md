@@ -63,6 +63,14 @@ export PRIVATE_KEY=/path/to/private.key
 vagrant up devstack --provider=rackspace
 ```
 
+__Run Tox Unit Tests__
+
+`TESTS=true SOLUM=~/dev/solum vagrant up api`
+
+* the first run will be slow,  but subsequent runs should be quite fast.
+* /solum on the guest vm will be mapped from the path specified by SOLUM from the host.
+* can be rerun on an already running VM by doing : `TESTS=true vagrant provision api`
+
 #### Using
 
 ```

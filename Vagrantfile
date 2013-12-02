@@ -60,7 +60,7 @@ DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] || "master"
 ############
 
 # All servers get this
-default_runlist = %w{ recipe[apt::default] recipe[solum::python] recipe[solum::user] }
+default_runlist = %w{ recipe[apt::default] recipe[solum::python] recipe[solum::user] recipe[git] }
 default_json = {
         authorization: {
           sudo: {
@@ -94,7 +94,7 @@ api_runlist = %w{ recipe[solum::api] }
 api_json = {}
 
 # Git Server
-git_runlist = %w{ recipe[git] recipe[git::server] }
+git_runlist = %w{ recipe[git::server] }
 git_json = {}
 
 Vagrant.configure("2") do |config|
@@ -205,6 +205,14 @@ Vagrant.configure("2") do |config|
       su vagrant -c "/home/vagrant/devstack/stack.sh"
       [[ -e /usr/local/bin/nova-manage ]] && for i in `seq 1 20`; do /usr/local/bin/nova-manage fixed reserve 192.168.78.$i; done
     SCRIPT
+
+    devstack.vm.provision :chef_solo do |chef|
+      chef.provisioning_path  = guest_cache_path
+      #chef.log_level          = :debug
+      chef.json               = default_json.merge(api_json)
+      chef.run_list           = default_runlist + api_runlist
+    end
+
   end
 
   # The 'support' server - VM for mysql server and rabbitmq server
@@ -219,7 +227,7 @@ Vagrant.configure("2") do |config|
     db.vm.network :private_network, ip: '192.168.76.12'
     db.vm.provision :chef_solo do |chef|
       chef.provisioning_path  = guest_cache_path
-      chef.log_level          = :debug
+      #chef.log_level          = :debug
       chef.json               = default_json.merge(mysql_json).merge(rabbit_json)
       chef.run_list           = default_runlist + mysql_runlist + rabbit_runlist
     end
@@ -229,15 +237,21 @@ Vagrant.configure("2") do |config|
   config.vm.define :api do |api|
     api.vm.box      = 'opscode-ubuntu-12.04'
     api.vm.box_url  = 'https://opscode-vm.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box'
-    api.vm.hostname = 'web'
+    api.vm.hostname = 'api'
     api.berkshelf.enabled = true
     api.omnibus.chef_version = :latest
     api.vm.network :private_network, ip: '192.168.76.13'
     api.vm.provision :chef_solo do |chef|
       chef.provisioning_path  = guest_cache_path
-      chef.log_level          = :debug
+      #chef.log_level          = :debug
       chef.json               = default_json.merge(api_json)
       chef.run_list           = default_runlist + api_runlist
+    end
+    if ENV['TESTS']
+      api.vm.provision :shell, :inline => <<-SCRIPT
+        cd /solum
+        tox
+      SCRIPT
     end
   end
 
@@ -251,7 +265,7 @@ Vagrant.configure("2") do |config|
     git.vm.network :private_network, ip: '192.168.76.14'
     git.vm.provision :chef_solo do |chef|
       chef.provisioning_path  = guest_cache_path
-      chef.log_level          = :debug
+      #chef.log_level          = :debug
       chef.json               = default_json.merge(git_json)
       chef.run_list           = default_runlist + git_runlist
     end

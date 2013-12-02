@@ -18,3 +18,19 @@
 #
 
 include_recipe 'python'
+
+apt_repository 'deadsnakes' do
+  uri           'http://ppa.launchpad.net/fkrull/deadsnakes/ubuntu/'
+  keyserver     'keyserver.ubuntu.com'
+  key           'DB82666C'
+  components    ['main']
+  distribution  node['lsb']['codename']
+  action        [:add]
+end
+
+['python-gdbm', 'python2.6', 'python2.7', 'python3.3', 'pypy'].each do |pkg|
+  package pkg do
+    action      :install
+  end
+end
+

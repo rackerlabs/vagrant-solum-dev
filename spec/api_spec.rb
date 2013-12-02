@@ -13,7 +13,7 @@ describe "solum::api" do
     end
 
     describe "lwrps" do
-      ['pecan', 'WSME'].each do |pip|
+      ['pecan', 'WSME', 'tox', 'pep8'].each do |pip|
         it "installs python package #{pip}" do
           resource = @chef_run.find_resource(
             'python_pip',
