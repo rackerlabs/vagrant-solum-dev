@@ -28,7 +28,7 @@ apt_repository 'deadsnakes' do
   action        [:add]
 end
 
-['python-gdbm', 'python2.6', 'python2.7', 'python3.3', 'pypy'].each do |pkg|
+['python-gdbm', 'python2.6', 'python2.7', 'python3.3', 'pypy-dev'].each do |pkg|
   package pkg do
     action      :install
   end

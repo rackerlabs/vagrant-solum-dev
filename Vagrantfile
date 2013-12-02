@@ -206,13 +206,6 @@ Vagrant.configure("2") do |config|
       [[ -e /usr/local/bin/nova-manage ]] && for i in `seq 1 20`; do /usr/local/bin/nova-manage fixed reserve 192.168.78.$i; done
     SCRIPT
 
-    devstack.vm.provision :chef_solo do |chef|
-      chef.provisioning_path  = guest_cache_path
-      #chef.log_level          = :debug
-      chef.json               = default_json.merge(api_json)
-      chef.run_list           = default_runlist + api_runlist
-    end
-
   end
 
   # The 'support' server - VM for mysql server and rabbitmq server
