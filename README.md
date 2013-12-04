@@ -20,6 +20,13 @@ vagrant plugin install vagrant-omnibus
 vagrant plugin install vagrant-berkshelf
 ```
 
+* a clone of this repo
+
+```
+git clone https://github.com/rackerlabs/vagrant-solum-dev.git
+cd vagrant-solum-dev
+```
+
 ### Experimental Rackspace Cloud Support
 
 __Vagrant Rackspace Provider__
