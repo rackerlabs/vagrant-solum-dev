@@ -17,20 +17,31 @@
 # limitations under the License.
 #
 
-include_recipe 'python'
+if node['platform'] == 'ubuntu'
 
-apt_repository 'deadsnakes' do
-  uri           'http://ppa.launchpad.net/fkrull/deadsnakes/ubuntu/'
-  keyserver     'keyserver.ubuntu.com'
-  key           'DB82666C'
-  components    ['main']
-  distribution  node['lsb']['codename']
-  action        [:add]
-end
+  include_recipe 'python'
 
-['python-gdbm', 'python2.6', 'python2.7', 'python3.3', 'pypy-dev'].each do |pkg|
-  package pkg do
-    action      :install
+  apt_repository 'deadsnakes' do
+    uri           'http://ppa.launchpad.net/fkrull/deadsnakes/ubuntu/'
+    keyserver     'keyserver.ubuntu.com'
+    key           'DB82666C'
+    components    ['main']
+    distribution  node['lsb']['codename']
+    action        [:add]
   end
-end
 
+  ['python-gdbm', 'python2.6', 'python2.7', 'python3.3', 'pypy-dev'].each do |pkg|
+    package pkg do
+      action      :install
+    end
+  end
+
+else node['platform'] == 'fedora'
+
+  ['gdbm-devel', 'python-devel', 'python3-devel', 'pypy-devel'].each do |pkg|
+    package pkg do
+      action      :install
+    end
+  end
+
+end

@@ -12,6 +12,7 @@
 # Set ENV['DEVSTACK_BRANCH'] to change the devstack branch to use
 # Set ENV['DOCKER'] to enable the devstack docker driver
 # Set ENV['SOLUM']='~/dev/solum' path on local system to solum repo
+# Set ENV['FEDORA'] to use fedora instead of ubuntu
 #############################################################################
 
 
@@ -71,6 +72,10 @@ default_json = {
         }
 }
 
+if ENV['FEDORA']
+  default_runlist.shift
+end
+
 # MySQL Server
 mysql_runlist = %w{ recipe[mysql::server] recipe[solum::database] }
 mysql_json = {
@@ -98,6 +103,18 @@ git_runlist = %w{ recipe[git::server] }
 git_json = {}
 
 Vagrant.configure("2") do |config|
+
+  # box configs!
+  if ENV["DOCKER"] and ! ENV['FEDORA']
+    config.vm.box      = 'ubuntu1204-3.8'
+    config.vm.box_url  = 'https://oss-binaries.phusionpassenger.com/vagrant/boxes/ubuntu-12.04.3-amd64-vbox.box'
+  elsif ENV['FEDORA']
+    config.vm.box      = 'opscode-fedora-19'
+    config.vm.box_url  = 'http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_fedora-19_chef-provisionerless.box'
+  else
+    config.vm.box      = 'opscode-ubuntu-12.04'
+    config.vm.box_url  = 'https://opscode-vm.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box'
+  end
 
   # all good servers deserve a solum
   if ENV['SOLUM']
@@ -148,22 +165,21 @@ Vagrant.configure("2") do |config|
       rs.server_name = "#{ENV['USER']}_#{devstack.vm.hostname}"
     end
 
-    if ENV["DOCKER"]
-      devstack.vm.box      = 'ubuntu1204-3.8'
-      devstack.vm.box_url  = 'https://oss-binaries.phusionpassenger.com/vagrant/boxes/ubuntu-12.04.3-amd64-vbox.box'
-    else
-      devstack.vm.box      = 'opscode-ubuntu-12.04'
-      devstack.vm.box_url  = 'https://opscode-vm.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box'
-    end
-
-
     devstack.vm.provision :shell, :inline => <<-SCRIPT
       grep "vagrant" /etc/passwd  || useradd -m -s /bin/bash -d /home/vagrant vagrant
       grep "vagrant" /etc/sudoers || echo 'vagrant  ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
-      apt-get update
-      apt-get -y install git socat curl wget
     SCRIPT
 
+    if ENV['FEDORA']
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        yum -y install git socat curl wget
+      SCRIPT
+    else
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        apt-get update
+        apt-get -y install git socat curl wget
+      SCRIPT
+    end
     unless ENV['SOLUM']
       devstack.vm.provision "shell", inline: "git clone https://github.com/stackforge/solum.git /solum || echo /solum already exists."
     end
@@ -181,6 +197,7 @@ Vagrant.configure("2") do |config|
       echo NOVNC_FROM_PACKAGE=false >> localrc
       echo 'ENABLED_SERVICES+=,heat,h-api,h-api-cfn,h-api-cw,h-eng' >> localrc
     SCRIPT
+
     if ENV["DOCKER"]
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         useradd docker || echo "user docker already exists"
@@ -188,6 +205,12 @@ Vagrant.configure("2") do |config|
         echo "DOCKER_REGISTRY_IMAGE=http://6bc6e9aa96b3ac52a4f4-abffaf981a2eb6b5e528f6c31e120f53.r19.cf2.rackcdn.com/docker-registry.tar.gz" >> /home/vagrant/devstack/localrc
         echo VIRT_DRIVER=docker >> /home/vagrant/devstack/localrc
         su vagrant -c "/home/vagrant/devstack/tools/docker/install_docker.sh"
+      SCRIPT
+    end
+
+    if ENV['FEDORA']
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        echo 'ENABLED_SERVICES+=,-rabbit,-zeromq,qpid' >> /home/vagrant/devstack/localrc
       SCRIPT
     end
 
@@ -210,8 +233,6 @@ Vagrant.configure("2") do |config|
 
   # The 'support' server - VM for mysql server and rabbitmq server
   config.vm.define :db do |db|
-    db.vm.box      = 'opscode-ubuntu-12.04'
-    db.vm.box_url  = 'https://opscode-vm.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box'
     db.vm.hostname = 'db'
     db.berkshelf.enabled = true
     db.omnibus.chef_version = :latest
@@ -228,8 +249,6 @@ Vagrant.configure("2") do |config|
 
   # The API server
   config.vm.define :api do |api|
-    api.vm.box      = 'opscode-ubuntu-12.04'
-    api.vm.box_url  = 'https://opscode-vm.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box'
     api.vm.hostname = 'api'
     api.berkshelf.enabled = true
     api.omnibus.chef_version = :latest
@@ -250,8 +269,6 @@ Vagrant.configure("2") do |config|
 
   # The git server
   config.vm.define :git do |git|
-    git.vm.box      = 'opscode-ubuntu-12.04'
-    git.vm.box_url  = 'https://opscode-vm.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box'
     git.vm.hostname = 'git'
     git.berkshelf.enabled = true
     git.omnibus.chef_version = :latest
@@ -266,8 +283,6 @@ Vagrant.configure("2") do |config|
 
   # This VM contains - git server, api server, mysql server, rabbitmq server
   config.vm.define :allinone do |allinone|
-    allinone.vm.box      = 'opscode-ubuntu-12.04'
-    allinone.vm.box_url  = 'https://opscode-vm.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box'
     allinone.vm.hostname = 'allinone'
     allinone.vm.provider :rackspace do |rs|
       rs.flavor      = /1 GB Performance/

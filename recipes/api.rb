@@ -21,9 +21,13 @@ include_recipe 'solum::python'
 
 # Install Solum API frameworks
 
-['virtualenv', 'pecan', 'WSME', 'tox', 'pep8'].each do |pip|
-  python_pip pip do
-    package_name  pip
-    action        [:install]
+if node['platform'] == 'ubuntu'
+
+  ['virtualenv', 'pecan', 'WSME', 'tox', 'pep8'].each do |pip|
+    python_pip pip do
+      package_name  pip
+      action        [:install]
+    end
   end
+
 end

@@ -16,7 +16,7 @@
       "locked_version": "1.5.2"
     },
     "mysql": {
-      "locked_version": "4.0.6"
+      "locked_version": "4.0.4"
     },
     "openssl": {
       "locked_version": "1.1.0"
@@ -25,7 +25,7 @@
       "locked_version": "1.4.2"
     },
     "postgresql": {
-      "locked_version": "3.3.4"
+      "locked_version": "3.2.0"
     },
     "aws": {
       "locked_version": "1.0.0"
@@ -43,7 +43,7 @@
       "locked_version": "2.4.2"
     },
     "python": {
-      "locked_version": "1.4.4"
+      "locked_version": "1.4.0"
     },
     "dmg": {
       "locked_version": "2.0.8"

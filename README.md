@@ -42,6 +42,9 @@ vagrant plugin install vagrant-rackspace
 
 ## Using
 
+Default boxes are `Ubuntu 12.04` supplied.  To use Fedora19 set the 
+environment variable `FEDORA=true`.
+
 ### Devstack
 
 #### Launching
