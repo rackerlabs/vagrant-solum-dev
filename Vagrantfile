@@ -253,6 +253,11 @@ Vagrant.configure("2") do |config|
     api.berkshelf.enabled = true
     api.omnibus.chef_version = :latest
     api.vm.network :private_network, ip: '192.168.76.13'
+    api.vm.provider "virtualbox" do |v|
+      v.customize ["modifyvm", :id, "--memory", 1024]
+      v.customize ["modifyvm", :id, "--cpus", 2]
+    end
+
     api.vm.provision :chef_solo do |chef|
       chef.provisioning_path  = guest_cache_path
       #chef.log_level          = :debug
