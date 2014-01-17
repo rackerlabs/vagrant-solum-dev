@@ -172,12 +172,18 @@ Vagrant.configure("2") do |config|
 
     if ENV['FEDORA']
       devstack.vm.provision :shell, :inline => <<-SCRIPT
-        yum -y install git socat curl wget
+        yum -y install git socat curl wget install python-devel \
+            openssl-devel python-pip git gcc libxslt-devel mysql-devel
+            python-pip postgresql-devel
+        pip-python install tox virtualenv
       SCRIPT
     else
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         apt-get update
-        apt-get -y install git socat curl wget
+        apt-get -y install git socat curl wget build-essential python-mysqldb \
+            python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
+            python-pip libmysqlclient-dev
+        pip install tox virtualenv
       SCRIPT
     end
     unless ENV['SOLUM']

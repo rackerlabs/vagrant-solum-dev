@@ -36,6 +36,13 @@ if node['platform'] == 'ubuntu'
     end
   end
 
+
+%w{ libxml2-dev  libxslt-dev }.each do |pkg|
+  package pkg do
+    action :install
+  end
+end
+
 else node['platform'] == 'fedora'
 
   ['gdbm-devel', 'python-devel', 'python3-devel', 'pypy-devel'].each do |pkg|
