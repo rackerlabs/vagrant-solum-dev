@@ -157,7 +157,7 @@ Vagrant.configure("2") do |config|
     devstack.vm.network :private_network, ip: '192.168.76.11'
 
     devstack.vm.provider "virtualbox" do |v|
-      v.customize ["modifyvm", :id, "--memory", 2048]
+      v.customize ["modifyvm", :id, "--memory", 4096]
       v.customize ["modifyvm", :id, "--cpus", 2]
       v.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
     end
@@ -201,6 +201,7 @@ Vagrant.configure("2") do |config|
       echo SERVICE_PASSWORD=solum >> localrc
       echo ADMIN_PASSWORD=solum >> localrc
       echo NOVNC_FROM_PACKAGE=false >> localrc
+      echo SCREEN_LOGDIR=/opt/stack/logs/screen >> localrc
       echo 'ENABLED_SERVICES+=,heat,h-api,h-api-cfn,h-api-cw,h-eng' >> localrc
     SCRIPT
 

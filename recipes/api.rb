@@ -23,11 +23,17 @@ include_recipe 'solum::python'
 
 if node['platform'] == 'ubuntu'
 
-  ['virtualenv', 'pecan', 'WSME', 'tox', 'pep8'].each do |pip|
+  ['virtualenv', 'pecan', 'WSME','pep8'].each do |pip|
     python_pip pip do
       package_name  pip
       action        [:install]
     end
+  end
+
+  python_pip 'tox' do
+    package_name  'tox'
+    action        [:install]
+    version       '1.6.1'
   end
 
 end
