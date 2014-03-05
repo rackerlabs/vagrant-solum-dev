@@ -54,7 +54,8 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 # Variables and fun things to make my life easier.
 ############
 
-DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] || "master"
+DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] ||= "master"
+DEVSTACK_REPO   = ENV['DEVSTACK_REPO']   ||= "https://github.com/openstack-dev/devstack.git"
 
 ############
 # Chef provisioning stuff for non devstack boxes
@@ -191,7 +192,7 @@ Vagrant.configure("2") do |config|
     end
 
     devstack.vm.provision :shell, :inline => <<-SCRIPT
-      su vagrant -c "git clone https://github.com/openstack-dev/devstack.git /home/vagrant/devstack || echo devstack already exists"
+      su vagrant -c "git clone #{DEVSTACK_REPO} /home/vagrant/devstack || echo devstack already exists"
       cd /home/vagrant/devstack
       su vagrant -c "git checkout #{DEVSTACK_BRANCH}"
       su vagrant -c "touch localrc"
@@ -209,7 +210,7 @@ Vagrant.configure("2") do |config|
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
-        echo "DOCKER_REGISTRY_IMAGE=http://6bc6e9aa96b3ac52a4f4-abffaf981a2eb6b5e528f6c31e120f53.r19.cf2.rackcdn.com/docker-registry.tar.gz" >> /home/vagrant/devstack/localrc
+        echo "DOCKER_REGISTRY_IMAGE=samalba/docker-registry" >> /home/vagrant/devstack/localrc
         echo VIRT_DRIVER=docker >> /home/vagrant/devstack/localrc
         su vagrant -c "/home/vagrant/devstack/tools/docker/install_docker.sh"
       SCRIPT
