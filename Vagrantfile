@@ -227,7 +227,7 @@ Vagrant.configure("2") do |config|
       chown vagrant /opt/stack
       [[ ! -L /opt/stack/solum ]] && su vagrant -c "ln -s /solum /opt/stack/solum"
       [[ ! -L /home/vagrant/devstack/lib/solum ]] && su vagrant -c "ln -s /solum/contrib/devstack/lib/solum /home/vagrant/devstack/lib/"
-      [[ ! -L /home/vagrant/devstack/extras.d/solum ]] && su vagrant -c "ln -s /solum/extras.d/70-solum.sh /home/vagrant/devstack/extras.d/"
+      [[ ! -L /home/vagrant/devstack/extras.d/solum ]] && su vagrant -c "ln -s /solum/contrib/devstack/extras.d/70-solum.sh /home/vagrant/devstack/extras.d/"
       echo "enable_service solum" >> /home/vagrant/devstack/localrc
       echo 'LOGFILE=/opt/stack/logs/stack.sh.log' >> /home/vagrant/devstack/localrc
       echo 'FLAT_INTERFACE=br100' >> /home/vagrant/devstack/localrc
