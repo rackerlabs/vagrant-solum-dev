@@ -57,6 +57,10 @@ __Devstack + Solum (mapped from local path)__
 
 `SOLUM=~/dev/solum vagrant up devstack`
 
+__Devstack + Solum + Tox pre-reqs__
+
+`TESTS=1 SOLUM=../code vagrant up devstack`
+
 __Devstack + Solum + Docker__
 
 `DOCKER=true vagrant up devstack`
