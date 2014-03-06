@@ -166,27 +166,15 @@ Vagrant.configure("2") do |config|
       rs.server_name = "#{ENV['USER']}_#{devstack.vm.hostname}"
     end
 
-    devstack.vm.provision :shell, :inline => <<-SCRIPT
-      grep "vagrant" /etc/passwd  || useradd -m -s /bin/bash -d /home/vagrant vagrant
-      grep "vagrant" /etc/sudoers || echo 'vagrant  ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
-    SCRIPT
-
-    if ENV['FEDORA']
-      devstack.vm.provision :shell, :inline => <<-SCRIPT
-        yum -y install git socat curl wget install python-devel \
-            openssl-devel python-pip git gcc libxslt-devel mysql-devel
-            python-pip postgresql-devel
-        pip-python install tox virtualenv
-      SCRIPT
-    else
-      devstack.vm.provision :shell, :inline => <<-SCRIPT
-        apt-get update
-        apt-get -y install git socat curl wget build-essential python-mysqldb \
-            python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
-            python-pip libmysqlclient-dev
-        pip install tox virtualenv
-      SCRIPT
+    if ENV['TESTS']
+      devstack.vm.provision :chef_solo do |chef|
+        chef.provisioning_path  = guest_cache_path
+        #chef.log_level          = :debug
+        chef.json               = default_json.merge(api_json)
+        chef.run_list           = default_runlist + api_runlist
+      end
     end
+
     unless ENV['SOLUM']
       devstack.vm.provision "shell", inline: "git clone https://github.com/stackforge/solum.git /solum || echo /solum already exists."
     end
