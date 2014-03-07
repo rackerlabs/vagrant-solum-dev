@@ -192,7 +192,7 @@ Vagrant.configure("2") do |config|
           apt-get update
           apt-get -y install git socat curl wget build-essential python-mysqldb \
               python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
-              python-pip libmysqlclient-dev
+              python-pip libmysqlclient-dev vim
           pip install tox virtualenv
         SCRIPT
       end
@@ -240,6 +240,9 @@ Vagrant.configure("2") do |config|
       [[ ! -L /home/vagrant/devstack/lib/solum ]] && su vagrant -c "ln -s /solum/contrib/devstack/lib/solum /home/vagrant/devstack/lib/"
       [[ ! -L /home/vagrant/devstack/extras.d/solum ]] && su vagrant -c "ln -s /solum/contrib/devstack/extras.d/70-solum.sh /home/vagrant/devstack/extras.d/"
       echo "enable_service solum" >> /home/vagrant/devstack/localrc
+      echo "enable_service solum-builder" >> /home/vagrant/devstack/localrc
+      echo "enable_service solum-dispatcher" >> /home/vagrant/devstack/localrc
+
       echo 'LOGFILE=/opt/stack/logs/stack.sh.log' >> /home/vagrant/devstack/localrc
       echo 'FLAT_INTERFACE=br100' >> /home/vagrant/devstack/localrc
       echo 'PUBLIC_INTERFACE=eth1' >> /home/vagrant/devstack/localrc
