@@ -106,20 +106,20 @@ git_json = {}
 Vagrant.configure("2") do |config|
 
   # box configs!
-  if ENV["DOCKER"] and ! ENV['FEDORA']
-    config.vm.box      = 'ubuntu1204-3.8'
-    config.vm.box_url  = 'https://oss-binaries.phusionpassenger.com/vagrant/boxes/ubuntu-12.04.3-amd64-vbox.box'
-  elsif ENV['FEDORA']
+  if ENV['FEDORA']
     config.vm.box      = 'opscode-fedora-19'
     config.vm.box_url  = 'http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_fedora-19_chef-provisionerless.box'
   else
-    config.vm.box      = 'opscode-ubuntu-12.04'
-    config.vm.box_url  = 'https://opscode-vm.s3.amazonaws.com/vagrant/opscode_ubuntu-12.04_provisionerless.box'
+    config.vm.box      = 'ubuntu1204-3.8'
+    config.vm.box_url  = 'https://oss-binaries.phusionpassenger.com/vagrant/boxes/ubuntu-12.04.3-amd64-vbox.box'
   end
 
   # all good servers deserve a solum
   if ENV['SOLUM']
-    config.vm.synced_folder ENV['SOLUM'], "/solum"
+    config.vm.synced_folder ENV['SOLUM'], "/opt/stack/solum"
+  end
+  if ENV['SOLUM_CLI']
+    config.vm.synced_folder ENV['SOLUM_CLI'], "/opt/stack/python-solumclient"
   end
 
   if RACKSPACE
@@ -201,7 +201,7 @@ Vagrant.configure("2") do |config|
     end
 
     unless ENV['SOLUM']
-      devstack.vm.provision "shell", inline: "git clone https://github.com/stackforge/solum.git /solum || echo /solum already exists."
+      devstack.vm.provision "shell", inline: "git clone https://github.com/stackforge/solum.git /opt/stack/solum || echo /opt/stack/solum already exists."
     end
 
     devstack.vm.provision :shell, :inline => <<-SCRIPT
@@ -238,9 +238,8 @@ Vagrant.configure("2") do |config|
     devstack.vm.provision :shell, :inline => <<-SCRIPT
       mkdir -p /opt/stack
       chown vagrant /opt/stack
-      [[ ! -L /opt/stack/solum ]] && su vagrant -c "ln -s /solum /opt/stack/solum"
-      [[ ! -L /home/vagrant/devstack/lib/solum ]] && su vagrant -c "ln -s /solum/contrib/devstack/lib/solum /home/vagrant/devstack/lib/"
-      [[ ! -L /home/vagrant/devstack/extras.d/solum ]] && su vagrant -c "ln -s /solum/contrib/devstack/extras.d/70-solum.sh /home/vagrant/devstack/extras.d/"
+      [[ ! -L /home/vagrant/devstack/lib/solum ]] && su vagrant -c "ln -s /opt/stack/solum/contrib/devstack/lib/solum /home/vagrant/devstack/lib/"
+      [[ ! -L /home/vagrant/devstack/extras.d/solum ]] && su vagrant -c "ln -s /opt/stack/solum/contrib/devstack/extras.d/70-solum.sh /home/vagrant/devstack/extras.d/"
       echo "enable_service solum" >> /home/vagrant/devstack/localrc
       echo "enable_service solum-builder" >> /home/vagrant/devstack/localrc
       echo "enable_service solum-dispatcher" >> /home/vagrant/devstack/localrc
@@ -252,7 +251,6 @@ Vagrant.configure("2") do |config|
       su vagrant -c "/home/vagrant/devstack/stack.sh"
       [[ -e /usr/local/bin/nova-manage ]] && for i in `seq 1 20`; do /usr/local/bin/nova-manage fixed reserve 192.168.78.$i; done
     SCRIPT
-
   end
 
   # The 'support' server - VM for mysql server and rabbitmq server
@@ -290,7 +288,7 @@ Vagrant.configure("2") do |config|
     end
     if ENV['TESTS']
       api.vm.provision :shell, :inline => <<-SCRIPT
-        cd /solum
+        cd /opt/stack/solum
         tox
       SCRIPT
     end
@@ -333,7 +331,10 @@ Vagrant.configure("2") do |config|
       chef.run_list           = default_runlist + mysql_runlist + rabbit_runlist + git_runlist + api_runlist
     end
     unless ENV['SOLUM']
-      allinone.vm.provision "shell", inline: "git clone https://github.com/stackforge/solum.git /solum || echo /solum already exists."
+      allinone.vm.provision "shell", :inline => <<-SCRIPT
+      mkdir -p /opt/stack/solum
+        git clone https://github.com/stackforge/solum.git /opt/stack/solum || echo /opt/stack/solum already exists.
+      SCRIPT
     end
   end
 
