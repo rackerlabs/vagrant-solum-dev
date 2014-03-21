@@ -186,7 +186,7 @@ Vagrant.configure("2") do |config|
               openssl-devel python-pip git gcc libxslt-devel mysql-devel
               python-pip postgresql-devel
           pip-python install virtualenv
-          pip-python install tox==1.5.0
+          pip-python install tox==1.6.1
         SCRIPT
       else
         devstack.vm.provision :shell, :inline => <<-SCRIPT
@@ -195,7 +195,7 @@ Vagrant.configure("2") do |config|
               python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
               python-pip libmysqlclient-dev vim
           pip install virtualenv
-          pip install tox==1.5.0
+          pip install tox==1.6.1
         SCRIPT
       end
     end
