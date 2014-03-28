@@ -241,8 +241,10 @@ Vagrant.configure("2") do |config|
       [[ ! -L /home/vagrant/devstack/lib/solum ]] && su vagrant -c "ln -s /opt/stack/solum/contrib/devstack/lib/solum /home/vagrant/devstack/lib/"
       [[ ! -L /home/vagrant/devstack/extras.d/solum ]] && su vagrant -c "ln -s /opt/stack/solum/contrib/devstack/extras.d/70-solum.sh /home/vagrant/devstack/extras.d/"
       echo "enable_service solum" >> /home/vagrant/devstack/localrc
-      echo "enable_service solum-builder" >> /home/vagrant/devstack/localrc
-      echo "enable_service solum-dispatcher" >> /home/vagrant/devstack/localrc
+      echo "enable_service solum-api" >> /home/vagrant/devstack/localrc
+      echo "enable_service solum-conductor" >> /home/vagrant/devstack/localrc
+      echo "enable_service solum-deployer" >> /home/vagrant/devstack/localrc
+      echo "enable_service solum-worker" >> /home/vagrant/devstack/localrc
 
       echo 'LOGFILE=/opt/stack/logs/stack.sh.log' >> /home/vagrant/devstack/localrc
       echo 'FLAT_INTERFACE=br100' >> /home/vagrant/devstack/localrc
