@@ -217,8 +217,8 @@ Vagrant.configure("2") do |config|
       echo NOVNC_FROM_PACKAGE=false >> localrc
       echo SCREEN_LOGDIR=/opt/stack/logs/screen >> localrc
       echo 'ENABLED_SERVICES+=,heat,h-api,h-api-cfn,h-api-cw,h-eng' >> localrc
-      echo 'DEFAULT_IMAGE_NAME=cedarish' >> localrc
-      echo 'IMAGE_URLS=http://cc42a68525a2dda0151c-9a7653a0ba84bd9342f239dc5349667e.r38.cf1.rackcdn.com/cedarish.qcow2' >> localrc
+      echo '# DEFAULT_IMAGE_NAME=cedarish' >> localrc
+      echo 'IMAGE_URLS=http://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-uec.tar.gz,http://cc42a68525a2dda0151c-9a7653a0ba84bd9342f239dc5349667e.r38.cf1.rackcdn.com/cedarish.qcow2' >> localrc
     SCRIPT
 
     if ENV["DOCKER"]
