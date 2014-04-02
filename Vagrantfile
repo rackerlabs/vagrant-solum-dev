@@ -54,8 +54,8 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 # Variables and fun things to make my life easier.
 ############
 
-DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] ||= "master"
-DEVSTACK_REPO   = ENV['DEVSTACK_REPO']   ||= "https://github.com/openstack-dev/devstack.git"
+DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] ||= "docker_driver"
+DEVSTACK_REPO   = ENV['DEVSTACK_REPO']   ||= "https://github.com/paulczar/devstack.git"
 
 ############
 # Chef provisioning stuff for non devstack boxes
@@ -227,7 +227,19 @@ Vagrant.configure("2") do |config|
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         echo "DOCKER_REGISTRY_IMAGE=samalba/docker-registry" >> /home/vagrant/devstack/localrc
         echo VIRT_DRIVER=docker >> /home/vagrant/devstack/localrc
-        su vagrant -c "/home/vagrant/devstack/tools/docker/install_docker.sh"
+        echo SOLUM_LP_ENVIRONMENT=docker >> /home/vagrant/devstack/localrc
+        echo NOVA_DOCKER_REPO=https://github.com/paulczar/nova-docker.git >> /home/vagrant/devstack/localrc
+        echo NOVA_DOCKER_BRANCH=fix_container_pid >> /home/vagrant/devstack/localrc
+        echo 'IMAGE_URLS='  >> /home/vagrant/devstack/localrc
+      SCRIPT
+    end
+
+    if ENV["LXC"]
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        apt-get -y install lxc
+        echo USE_LXC_BRIDGE="false" >> /etc/default/lxc
+        echo VIRT_DRIVER=libvirt >> /home/vagrant/devstack/localrc
+        echo LIBVIRT_TYPE=lxc >> /home/vagrant/devstack/localrc
       SCRIPT
     end
 
