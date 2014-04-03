@@ -227,9 +227,9 @@ Vagrant.configure("2") do |config|
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         echo "DOCKER_REGISTRY_IMAGE=samalba/docker-registry" >> /home/vagrant/devstack/localrc
         echo VIRT_DRIVER=docker >> /home/vagrant/devstack/localrc
-        echo SOLUM_LP_ENVIRONMENT=docker >> /home/vagrant/devstack/localrc
+        echo SOLUM_IMAGE_FORMAT=docker >> /home/vagrant/devstack/localrc
         echo NOVA_DOCKER_REPO=https://github.com/paulczar/nova-docker.git >> /home/vagrant/devstack/localrc
-        echo NOVA_DOCKER_BRANCH=fix_container_pid >> /home/vagrant/devstack/localrc
+        echo NOVA_DOCKER_BRANCH=solum_testing >> /home/vagrant/devstack/localrc
         echo 'IMAGE_URLS='  >> /home/vagrant/devstack/localrc
       SCRIPT
     end
