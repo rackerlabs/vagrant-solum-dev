@@ -183,8 +183,6 @@ Vagrant.configure("2") do |config|
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/localrc.docker > /home/vagrant/devstack/localrc
         su vagrant -c "/home/vagrant/devstack/stack.sh"
-        docker tag solum/slugrunner 127.0.0.1:5042/slugrunner
-        docker push 127.0.0.1:5042/slugrunner
       SCRIPT
     else
       devstack.vm.provision :shell, :inline => <<-SCRIPT

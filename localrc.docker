@@ -18,6 +18,8 @@ SOLUM_IMAGE_FORMAT=docker
 NOVA_DOCKER_REPO=https://github.com/paulczar/nova-docker.git
 NOVA_DOCKER_BRANCH=solum_testing
 
+solum/slugrunner
+
 enable_service solum
 enable_service solum-api
 enable_service solum-conductor
