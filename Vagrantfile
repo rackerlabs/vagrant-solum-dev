@@ -10,9 +10,8 @@
 # the components
 #
 # Set ENV['DEVSTACK_BRANCH'] to change the devstack branch to use
-# Set ENV['DOCKER'] to enable the devstack docker driver
 # Set ENV['SOLUM']='~/dev/solum' path on local system to solum repo
-# Set ENV['FEDORA'] to use fedora instead of ubuntu
+# Set ENV['SOLUM_IMAGE_FORMAT'] to "vm" if you don't want docker
 #############################################################################
 
 
@@ -56,52 +55,20 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 
 DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] ||= "docker_driver"
 DEVSTACK_REPO   = ENV['DEVSTACK_REPO']   ||= "https://github.com/paulczar/devstack.git"
+SOLUM_BRANCH    = ENV['SOLUM_BRANCH']    ||= "cb7ae4b5f8"
+SOLUM_REPO      = ENV['SOLUM_REPO']      ||= "https://github.com/stackforge/solum.git"
+SOLUM_IMAGE_FORMAT = ENV['SOLUM_IMAGE_FORMAT'] ||= "docker"
+
 
 ############
 # Chef provisioning stuff for non devstack boxes
 ############
 
 # All servers get this
-default_runlist = %w{ recipe[apt::default] recipe[solum::python] recipe[solum::user] recipe[git] }
+default_runlist = %w{ recipe[apt::default] recipe[solum::python] }
 default_json = {
-        authorization: {
-          sudo: {
-            users: ['vagrant'],
-            passwordless: true,
-            include_sudoers_d: true
-          }
-        }
+
 }
-
-if ENV['FEDORA']
-  default_runlist.shift
-end
-
-# MySQL Server
-mysql_runlist = %w{ recipe[mysql::server] recipe[solum::database] }
-mysql_json = {
-         mysql: {
-          server_root_password:   "solum",
-          server_debian_password: "solum",
-          server_repl_password:   "solum"
-        }
-}
-
-# RabbitMQ Server
-rabbit_runlist = %w{ recipe[solum::rabbit] }
-rabbit_json = {
-        rabbitmq: {
-          enabled_plugins: [ 'rabbitmq_management' ]
-        }
-}
-
-# API Server
-api_runlist = %w{ recipe[solum::api] }
-api_json = {}
-
-# Git Server
-git_runlist = %w{ recipe[git::server] }
-git_json = {}
 
 Vagrant.configure("2") do |config|
 
@@ -180,28 +147,25 @@ Vagrant.configure("2") do |config|
         grep "vagrant" /etc/passwd  || useradd -m -s /bin/bash -d /home/vagrant vagrant
         grep "vagrant" /etc/sudoers || echo 'vagrant  ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers
       SCRIPT
-      if ENV['FEDORA']
-        devstack.vm.provision :shell, :inline => <<-SCRIPT
-          yum -y install git socat curl wget install python-devel \
-              openssl-devel python-pip git gcc libxslt-devel mysql-devel
-              python-pip postgresql-devel
-          pip-python install virtualenv
-          pip-python install tox==1.6.1
-        SCRIPT
-      else
-        devstack.vm.provision :shell, :inline => <<-SCRIPT
-          apt-get update
-          apt-get -y install git socat curl wget build-essential python-mysqldb \
-              python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
-              python-pip libmysqlclient-dev vim
-          pip install virtualenv
-          pip install tox==1.6.1
-        SCRIPT
-      end
+
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        apt-get update
+        apt-get -y install git socat curl wget build-essential python-mysqldb \
+            python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
+            python-pip libmysqlclient-dev vim
+        pip install virtualenv
+        pip install tox==1.6.1
+        mkdir -p /opt/stack
+        chown vagrant /opt/stack
+      SCRIPT
     end
 
     unless ENV['SOLUM']
-      devstack.vm.provision "shell", inline: "git clone https://github.com/stackforge/solum.git /opt/stack/solum || echo /opt/stack/solum already exists."
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        su vagrant -c "git clone #{SOLUM_REPO} /opt/stack/solum || echo /opt/stack/solum already exists"
+        cd /opt/stack/solum
+        su vagrant -c "git checkout #{SOLUM_BRANCH}"
+      SCRIPT
     end
 
     devstack.vm.provision :shell, :inline => <<-SCRIPT
@@ -209,149 +173,26 @@ Vagrant.configure("2") do |config|
       cd /home/vagrant/devstack
       su vagrant -c "git checkout #{DEVSTACK_BRANCH}"
       su vagrant -c "touch localrc"
-      echo DATABASE_PASSWORD=solum >> localrc
-      echo RABBIT_PASSWORD=solum >> localrc
-      echo SERVICE_TOKEN=solum >> localrc
-      echo SERVICE_PASSWORD=solum >> localrc
-      echo ADMIN_PASSWORD=solum >> localrc
-      echo NOVNC_FROM_PACKAGE=false >> localrc
-      echo SCREEN_LOGDIR=/opt/stack/logs/screen >> localrc
-      echo 'ENABLED_SERVICES+=,heat,h-api,h-api-cfn,h-api-cw,h-eng' >> localrc
-      echo '# DEFAULT_IMAGE_NAME=cedarish' >> localrc
-      echo 'IMAGE_URLS=http://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-uec.tar.gz,http://cc42a68525a2dda0151c-9a7653a0ba84bd9342f239dc5349667e.r38.cf1.rackcdn.com/cedarish.qcow2' >> localrc
+      [[ ! -L /home/vagrant/devstack/lib/solum ]] && su vagrant -c "ln -s /opt/stack/solum/contrib/devstack/lib/solum /home/vagrant/devstack/lib/"
+      [[ ! -L /home/vagrant/devstack/extras.d/solum ]] && su vagrant -c "ln -s /opt/stack/solum/contrib/devstack/extras.d/70-solum.sh /home/vagrant/devstack/extras.d/"
     SCRIPT
 
-    if ENV["DOCKER"]
+    if SOLUM_IMAGE_FORMAT == 'docker'
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
-        echo "DOCKER_REGISTRY_IMAGE=samalba/docker-registry" >> /home/vagrant/devstack/localrc
-        echo VIRT_DRIVER=docker >> /home/vagrant/devstack/localrc
-        echo SOLUM_IMAGE_FORMAT=docker >> /home/vagrant/devstack/localrc
-        echo NOVA_DOCKER_REPO=https://github.com/paulczar/nova-docker.git >> /home/vagrant/devstack/localrc
-        echo NOVA_DOCKER_BRANCH=solum_testing >> /home/vagrant/devstack/localrc
-        echo 'IMAGE_URLS='  >> /home/vagrant/devstack/localrc
+        cat /vagrant/localrc.docker > /home/vagrant/devstack/localrc
+        su vagrant -c "/home/vagrant/devstack/stack.sh"
+        docker tag solum/slugrunner 127.0.0.1:5042/slugrunner
+        docker push 127.0.0.1:5042/slugrunner
       SCRIPT
-    end
-
-    if ENV["LXC"]
+    else
       devstack.vm.provision :shell, :inline => <<-SCRIPT
-        apt-get -y install lxc
-        echo USE_LXC_BRIDGE="false" >> /etc/default/lxc
-        echo VIRT_DRIVER=libvirt >> /home/vagrant/devstack/localrc
-        echo LIBVIRT_TYPE=lxc >> /home/vagrant/devstack/localrc
+        cat /vagrant/localrc.vm > /home/vagrant/devstack/localrc
+        su vagrant -c "/home/vagrant/devstack/stack.sh"
       SCRIPT
     end
 
-    if ENV['FEDORA']
-      devstack.vm.provision :shell, :inline => <<-SCRIPT
-        echo 'ENABLED_SERVICES+=,-rabbit,-zeromq,qpid' >> /home/vagrant/devstack/localrc
-      SCRIPT
-    end
-
-    devstack.vm.provision :shell, :inline => <<-SCRIPT
-      mkdir -p /opt/stack
-      chown vagrant /opt/stack
-      [[ ! -L /home/vagrant/devstack/lib/solum ]] && su vagrant -c "ln -s /opt/stack/solum/contrib/devstack/lib/solum /home/vagrant/devstack/lib/"
-      [[ ! -L /home/vagrant/devstack/extras.d/solum ]] && su vagrant -c "ln -s /opt/stack/solum/contrib/devstack/extras.d/70-solum.sh /home/vagrant/devstack/extras.d/"
-      echo "enable_service solum" >> /home/vagrant/devstack/localrc
-      echo "enable_service solum-api" >> /home/vagrant/devstack/localrc
-      echo "enable_service solum-conductor" >> /home/vagrant/devstack/localrc
-      echo "enable_service solum-deployer" >> /home/vagrant/devstack/localrc
-      echo "enable_service solum-worker" >> /home/vagrant/devstack/localrc
-
-      echo 'LOGFILE=/opt/stack/logs/stack.sh.log' >> /home/vagrant/devstack/localrc
-      echo 'FLAT_INTERFACE=br100' >> /home/vagrant/devstack/localrc
-      echo 'PUBLIC_INTERFACE=eth1' >> /home/vagrant/devstack/localrc
-      echo 'FIXED_RANGE=192.168.78.0/24' >> /home/vagrant/devstack/localrc
-      su vagrant -c "/home/vagrant/devstack/stack.sh"
-      [[ -e /usr/local/bin/nova-manage ]] && for i in `seq 1 20`; do /usr/local/bin/nova-manage fixed reserve 192.168.78.$i; done
-    SCRIPT
-  end
-
-  # The 'support' server - VM for mysql server and rabbitmq server
-  config.vm.define :db do |db|
-    db.vm.hostname = 'db'
-    db.berkshelf.enabled = true
-    db.omnibus.chef_version = :latest
-    db.vm.network "forwarded_port", guest: 15672, host: 15672
-    db.vm.network "forwarded_port", guest: 3306, host: 3306
-    db.vm.network :private_network, ip: '192.168.76.12'
-    db.vm.provision :chef_solo do |chef|
-      chef.provisioning_path  = guest_cache_path
-      #chef.log_level          = :debug
-      chef.json               = default_json.merge(mysql_json).merge(rabbit_json)
-      chef.run_list           = default_runlist + mysql_runlist + rabbit_runlist
-    end
-  end
-
-  # The API server
-  config.vm.define :api do |api|
-    api.vm.hostname = 'api'
-    api.berkshelf.enabled = true
-    api.omnibus.chef_version = :latest
-    api.vm.network :private_network, ip: '192.168.76.13'
-    api.vm.provider "virtualbox" do |v|
-      v.customize ["modifyvm", :id, "--memory", 1024]
-      v.customize ["modifyvm", :id, "--cpus", 2]
-    end
-
-    api.vm.provision :chef_solo do |chef|
-      chef.provisioning_path  = guest_cache_path
-      #chef.log_level          = :debug
-      chef.json               = default_json.merge(api_json)
-      chef.run_list           = default_runlist + api_runlist
-    end
-    if ENV['TESTS']
-      api.vm.provision :shell, :inline => <<-SCRIPT
-        cd /opt/stack/solum
-        tox
-      SCRIPT
-    end
-  end
-
-  # The git server
-  config.vm.define :git do |git|
-    git.vm.hostname = 'git'
-    git.berkshelf.enabled = true
-    git.omnibus.chef_version = :latest
-    git.vm.network :private_network, ip: '192.168.76.14'
-    git.vm.provision :chef_solo do |chef|
-      chef.provisioning_path  = guest_cache_path
-      #chef.log_level          = :debug
-      chef.json               = default_json.merge(git_json)
-      chef.run_list           = default_runlist + git_runlist
-    end
-  end
-
-  # This VM contains - git server, api server, mysql server, rabbitmq server
-  config.vm.define :allinone do |allinone|
-    allinone.vm.hostname = 'allinone'
-    allinone.vm.provider :rackspace do |rs|
-      rs.flavor      = /1 GB Performance/
-      rs.server_name = "#{ENV['USER']}_allinone"
-    end
-    allinone.vm.provider "virtualbox" do |v|
-      v.customize ["modifyvm", :id, "--memory", 2048]
-      v.customize ["modifyvm", :id, "--cpus", "2"]
-    end
-    allinone.berkshelf.enabled = true
-    allinone.omnibus.chef_version = :latest
-    allinone.vm.network "forwarded_port", guest: 15672, host: 15672
-    allinone.vm.network "forwarded_port", guest: 3306, host: 3306
-    allinone.vm.network :private_network, ip: '192.168.76.10'
-    allinone.vm.provision :chef_solo do |chef|
-      chef.provisioning_path = guest_cache_path
-      chef.log_level         = :debug
-      chef.json               = default_json.merge(mysql_json).merge(rabbit_json).merge(git_json).merge(api_json)
-      chef.run_list           = default_runlist + mysql_runlist + rabbit_runlist + git_runlist + api_runlist
-    end
-    unless ENV['SOLUM']
-      allinone.vm.provision "shell", :inline => <<-SCRIPT
-      mkdir -p /opt/stack/solum
-        git clone https://github.com/stackforge/solum.git /opt/stack/solum || echo /opt/stack/solum already exists.
-      SCRIPT
-    end
   end
 
 end

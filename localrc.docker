@@ -1,0 +1,25 @@
+LOGFILE=/opt/stack/logs/stack.sh.log
+FLAT_INTERFACE=eth1
+PUBLIC_INTERFACE=br101
+FIXED_RANGE=192.168.78.1/24
+DATABASE_PASSWORD=solum
+RABBIT_PASSWORD=solum
+SERVICE_TOKEN=solum
+SERVICE_PASSWORD=solum
+ADMIN_PASSWORD=solum
+NOVNC_FROM_PACKAGE=false
+SCREEN_LOGDIR=/opt/stack/logs/screen
+SOLUM_INSTALL_CEDARISH=True
+ENABLED_SERVICES+=,heat,h-api,h-api-cfn,h-api-cw,h-eng
+
+DOCKER_REGISTRY_IMAGE=samalba/docker-registry
+VIRT_DRIVER=docker
+SOLUM_IMAGE_FORMAT=docker
+NOVA_DOCKER_REPO=https://github.com/paulczar/nova-docker.git
+NOVA_DOCKER_BRANCH=solum_testing
+
+enable_service solum
+enable_service solum-api
+enable_service solum-conductor
+enable_service solum-deployer
+enable_service solum-worker

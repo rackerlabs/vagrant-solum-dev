@@ -37,11 +37,19 @@ if node['platform'] == 'ubuntu'
   end
 
 
-%w{ libxml2-dev  libxslt-dev }.each do |pkg|
-  package pkg do
-    action :install
+  %w{ libxml2-dev  libxslt-dev }.each do |pkg|
+    package pkg do
+      action :install
+    end
   end
-end
+
+  python_pip 'virtualenv'
+
+  python_pip 'tox' do
+    package_name  'tox'
+    action        [:install]
+    version       '1.6.1'
+  end
 
 else node['platform'] == 'fedora'
 
