@@ -53,8 +53,10 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 # Variables and fun things to make my life easier.
 ############
 
-DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] ||= "docker_driver"
-DEVSTACK_REPO   = ENV['DEVSTACK_REPO']   ||= "https://github.com/paulczar/devstack.git"
+#DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] ||= "docker_driver"
+#DEVSTACK_REPO   = ENV['DEVSTACK_REPO']   ||= "https://github.com/paulczar/devstack.git"
+DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] ||= "master"
+DEVSTACK_REPO   = ENV['DEVSTACK_REPO']   ||= "https://github.com/openstack-dev/devstack.git"
 SOLUM_BRANCH    = ENV['SOLUM_BRANCH']    ||= "cb7ae4b5f8"
 SOLUM_REPO      = ENV['SOLUM_REPO']      ||= "https://github.com/stackforge/solum.git"
 SOLUM_IMAGE_FORMAT = ENV['SOLUM_IMAGE_FORMAT'] ||= "docker"
@@ -73,18 +75,18 @@ default_json = {
 Vagrant.configure("2") do |config|
 
   # box configs!
-  if ENV['FEDORA']
-    config.vm.box      = 'opscode-fedora-19'
-    config.vm.box_url  = 'http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_fedora-19_chef-provisionerless.box'
-  else
-    config.vm.box      = 'ubuntu1204-3.8'
-    config.vm.box_url  = 'https://oss-binaries.phusionpassenger.com/vagrant/boxes/ubuntu-12.04.3-amd64-vbox.box'
-  end
+  config.vm.box      = 'ubuntu1204-3.8'
+  config.vm.box_url  = 'https://oss-binaries.phusionpassenger.com/vagrant/boxes/ubuntu-12.04.3-amd64-vbox.box'
 
   # all good servers deserve a solum
   if ENV['SOLUM']
     config.vm.synced_folder ENV['SOLUM'], "/opt/stack/solum"
   end
+
+  if ENV['NOVADOCKER']
+    config.vm.synced_folder ENV['NOVADOCKER'], '/opt/stack/nova-docker'
+  end
+
   if ENV['SOLUM_CLI']
     config.vm.synced_folder ENV['SOLUM_CLI'], "/opt/stack/python-solumclient"
   end
@@ -172,13 +174,16 @@ Vagrant.configure("2") do |config|
       su vagrant -c "git clone #{DEVSTACK_REPO} /home/vagrant/devstack || echo devstack already exists"
       cd /home/vagrant/devstack
       su vagrant -c "git checkout #{DEVSTACK_BRANCH}"
+      #patch -p0 < /opt/stack/solum/contrib/devstack/stackrc.diff
       su vagrant -c "touch localrc"
-      [[ ! -L /home/vagrant/devstack/lib/solum ]] && su vagrant -c "ln -s /opt/stack/solum/contrib/devstack/lib/solum /home/vagrant/devstack/lib/"
-      [[ ! -L /home/vagrant/devstack/extras.d/solum ]] && su vagrant -c "ln -s /opt/stack/solum/contrib/devstack/extras.d/70-solum.sh /home/vagrant/devstack/extras.d/"
+      cp -R /opt/stack/solum/contrib/devstack/lib/* /home/vagrant/devstack/lib/
+      cp /opt/stack/solum/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
     SCRIPT
 
     if SOLUM_IMAGE_FORMAT == 'docker'
       devstack.vm.provision :shell, :inline => <<-SCRIPT
+        cp -R /opt/stack/nova-docker/contrib/devstack/lib/* /home/vagrant/devstack/lib/
+        cp /opt/stack/nova-docker/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/localrc.docker > /home/vagrant/devstack/localrc
