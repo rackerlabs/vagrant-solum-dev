@@ -57,10 +57,11 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 #DEVSTACK_REPO   = ENV['DEVSTACK_REPO']   ||= "https://github.com/paulczar/devstack.git"
 DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] ||= "master"
 DEVSTACK_REPO   = ENV['DEVSTACK_REPO']   ||= "https://github.com/openstack-dev/devstack.git"
-SOLUM_BRANCH    = ENV['SOLUM_BRANCH']    ||= "cb7ae4b5f8"
+SOLUM_BRANCH    = ENV['SOLUM_BRANCH']    ||= "master"
 SOLUM_REPO      = ENV['SOLUM_REPO']      ||= "https://github.com/stackforge/solum.git"
+NOVADOCKER_BRANCH    = ENV['NOVADOCKER_BRANCH']    ||= "master"
+NOVADOCKER_REPO      = ENV['NOVADOCKER_REPO']      ||= "https://github.com/stackforge/nova-docker.git"
 SOLUM_IMAGE_FORMAT = ENV['SOLUM_IMAGE_FORMAT'] ||= "docker"
-
 
 ############
 # Chef provisioning stuff for non devstack boxes
@@ -174,7 +175,6 @@ Vagrant.configure("2") do |config|
       su vagrant -c "git clone #{DEVSTACK_REPO} /home/vagrant/devstack || echo devstack already exists"
       cd /home/vagrant/devstack
       su vagrant -c "git checkout #{DEVSTACK_BRANCH}"
-      #patch -p0 < /opt/stack/solum/contrib/devstack/stackrc.diff
       su vagrant -c "touch localrc"
       cp -R /opt/stack/solum/contrib/devstack/lib/* /home/vagrant/devstack/lib/
       cp /opt/stack/solum/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
@@ -182,12 +182,18 @@ Vagrant.configure("2") do |config|
 
     if SOLUM_IMAGE_FORMAT == 'docker'
       devstack.vm.provision :shell, :inline => <<-SCRIPT
+        echo 'Set up Nova Docker Driver'
+        su vagrant -c "git clone #{NOVADOCKER_REPO} /opt/stack/nova-docker || echo novadocker already exists"
+        cd /opt/stack/nova-docker
+        su vagrant -c "git checkout #{NOVADOCKER_BRANCH}"
         cp -R /opt/stack/nova-docker/contrib/devstack/lib/* /home/vagrant/devstack/lib/
         cp /opt/stack/nova-docker/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
+        sed -i 's/ln -snf/# ln -snf/' /home/vagrant/devstack/lib/nova_plugins/hypervisor-docker
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/localrc.docker > /home/vagrant/devstack/localrc
         su vagrant -c "/home/vagrant/devstack/stack.sh"
+        cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
         docker pull paulczar/slugrunner
         docker tag paulczar/slugrunner 127.0.0.1:5042/slugrunner
         docker push 127.0.0.1:5042/slugrunner
