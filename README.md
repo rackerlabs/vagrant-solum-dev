@@ -3,7 +3,7 @@
 ## About
 
 The purpose of this Repo is to help you quickly set up a consistent development environment
-for working on Solum.    It will deploy devstack and the solum repo and get everything started.
+for working on Solum. It will deploy devstack and the solum repo and get everything started.
 
 It is designed to be run with Vagrant/VirtualBox on your local desktop, but there is some experimental
 support for using the Rackspace Cloud Provider.
