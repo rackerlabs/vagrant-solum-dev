@@ -11,6 +11,7 @@
 #
 # Set ENV['DEVSTACK_BRANCH'] to change the devstack branch to use
 # Set ENV['SOLUM']='~/dev/solum' path on local system to solum repo
+# Set ENV['SOLUM_CLI']='~/dev/python-solumclient' path on local system to solum repo
 # Set ENV['SOLUM_IMAGE_FORMAT'] to "vm" if you don't want docker
 #############################################################################
 
@@ -54,15 +55,17 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 ############
 
 # Uncomment me for WEBGUI magic
-# WEBGUI_BRANCH   = ENV['WEBGUI_BRANCH']   ||= "master"
-# WEBGUI_REPO     = ENV['WEBGUI_REPO']     ||= "https://github.com/?????"
-DEVSTACK_BRANCH = ENV['DEVSTACK_BRANCH'] ||= "master"
-DEVSTACK_REPO   = ENV['DEVSTACK_REPO']   ||= "https://github.com/openstack-dev/devstack.git"
-SOLUM_BRANCH    = ENV['SOLUM_BRANCH']    ||= "master"
-SOLUM_REPO      = ENV['SOLUM_REPO']      ||= "https://github.com/stackforge/solum.git"
-NOVADOCKER_BRANCH    = ENV['NOVADOCKER_BRANCH']    ||= "master"
-NOVADOCKER_REPO      = ENV['NOVADOCKER_REPO']      ||= "https://github.com/stackforge/nova-docker.git"
+WEBGUI_BRANCH      = ENV['WEBGUI_BRANCH']      ||= "master"
+WEBGUI_REPO        = ENV['WEBGUI_REPO']        ||= "https://github.com/rackerlabs/solum-m2demo-ui.git"
+DEVSTACK_BRANCH    = ENV['DEVSTACK_BRANCH']    ||= "master"
+DEVSTACK_REPO      = ENV['DEVSTACK_REPO']      ||= "https://github.com/openstack-dev/devstack.git"
+NOVADOCKER_BRANCH  = ENV['NOVADOCKER_BRANCH']  ||= "master"
+NOVADOCKER_REPO    = ENV['NOVADOCKER_REPO']    ||= "https://github.com/stackforge/nova-docker.git"
+SOLUM_BRANCH       = ENV['SOLUM_BRANCH']       ||= "master"
+SOLUM_CLI_BRANCH   = ENV['SOLUM_BRANCH']       ||= "master"
+SOLUM_CLI_REPO     = ENV['SOLUM_REPO']         ||= "https://github.com/stackforge/python-solumclient.git"
 SOLUM_IMAGE_FORMAT = ENV['SOLUM_IMAGE_FORMAT'] ||= "docker"
+SOLUM_REPO         = ENV['SOLUM_REPO']         ||= "https://github.com/stackforge/solum.git"
 
 ############
 # Chef provisioning stuff for non devstack boxes
@@ -90,9 +93,9 @@ Vagrant.configure("2") do |config|
   end
 
 # Uncomment me for WEBGUI magic
-#  if ENV['WEBGUI']
-#    config.vm.synced_folder ENV['WEBGUI'], '/opt/stack/solum-gui'
-#  end
+  if ENV['WEBGUI']
+    config.vm.synced_folder ENV['WEBGUI'], '/opt/stack/solum-gui'
+  end
 
   if ENV['SOLUM_CLI']
     config.vm.synced_folder ENV['SOLUM_CLI'], "/opt/stack/python-solumclient"
@@ -161,7 +164,7 @@ Vagrant.configure("2") do |config|
         apt-get update
         apt-get -y install git socat curl wget build-essential python-mysqldb \
             python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
-            python-pip libmysqlclient-dev vim
+            python-pip libmysqlclient-dev vim screen
         pip install virtualenv
         pip install tox==1.6.1
         mkdir -p /opt/stack
@@ -177,14 +180,14 @@ Vagrant.configure("2") do |config|
       SCRIPT
     end
 
-# uncomment me for WEBGUI magic
-#    unless ENV['WEBGUI']
-#      devstack.vm.provision :shell, :inline => <<-SCRIPT
-#        su vagrant -c "git clone #{WEBGUI_REPO} /opt/stack/solum-gui || echo /opt/stack/solum-gui already exists"
-#        cd /opt/stack/solum-gui
-#        su vagrant -c "git checkout #{WEBGUI_BRANCH}"
-#      SCRIPT
-#    end
+    # uncomment me for WEBGUI magic
+    unless ENV['WEBGUI']
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        su vagrant -c "git clone #{WEBGUI_REPO} /opt/stack/solum-gui || echo /opt/stack/solum-gui already exists"
+        cd /opt/stack/solum-gui
+        su vagrant -c "git checkout #{WEBGUI_BRANCH}"
+      SCRIPT
+    end
 
     devstack.vm.provision :shell, :inline => <<-SCRIPT
       su vagrant -c "git clone #{DEVSTACK_REPO} /home/vagrant/devstack || echo devstack already exists"
@@ -193,6 +196,9 @@ Vagrant.configure("2") do |config|
       su vagrant -c "touch localrc"
       cp -R /opt/stack/solum/contrib/devstack/lib/* /home/vagrant/devstack/lib/
       cp /opt/stack/solum/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
+
+      cp /opt/stack/solum-gui/bridge/scripts/*.sh /home/vagrant
+      su vagrant -c "/opt/stack/solum-gui/start-demo.sh"
     SCRIPT
 
     if SOLUM_IMAGE_FORMAT == 'docker'
