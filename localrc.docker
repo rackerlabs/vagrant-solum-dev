@@ -12,7 +12,7 @@ SCREEN_LOGDIR=/opt/stack/logs/screen
 SOLUM_INSTALL_CEDARISH=True
 ENABLED_SERVICES+=,heat,h-api,h-api-cfn,h-api-cw,h-eng
 
-#DOCKER_REGISTRY_IMAGE=samalba/docker-registry
+DOCKER_REGISTRY_IMAGE=samalba/docker-registry
 VIRT_DRIVER=docker
 SOLUM_IMAGE_FORMAT=docker
 

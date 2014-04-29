@@ -1,5 +1,9 @@
 # Solum Dev Environment with Vagrant
 
+These docs are out of date.
+
+Please follow the instructions found here - https://solum.readthedocs.org/en/latest/getting_started/
+
 ## About
 
 The purpose of this Repo is to help you quickly set up a consistent development environment
@@ -13,12 +17,6 @@ support for using the Rackspace Cloud Provider.
 * Vagrant 1.3.x  ( http://downloads.vagrantup.com/tags/v1.3.5 )
 * Virtualbox ( https://www.virtualbox.org/wiki/Downloads )
 
-__Vagrant Plugins ( in this order! )__
-
-```
-vagrant plugin install vagrant-omnibus
-vagrant plugin install vagrant-berkshelf
-```
 
 * a clone of this repo
 
@@ -42,9 +40,6 @@ vagrant plugin install vagrant-rackspace
 
 ## Using
 
-Default boxes are `Ubuntu 12.04` supplied.  To use Fedora19 set the 
-environment variable `FEDORA=true`.
-
 ### Devstack
 
 #### Launching
@@ -57,14 +52,6 @@ __Devstack + Solum (mapped from local path)__
 
 `SOLUM=~/dev/solum vagrant up devstack`
 
-__Devstack + Solum + Tox pre-reqs__
-
-`TESTS=1 SOLUM=../code vagrant up devstack`
-
-__Devstack + Solum + Docker__
-
-`DOCKER=true vagrant up devstack`
-
 __Devstack + Solum to Rackspace Cloud__
 
 _experimental_
@@ -76,14 +63,6 @@ export PUBLIC_KEY=/path/to/public.key
 export PRIVATE_KEY=/path/to/private.key
 vagrant up devstack --provider=rackspace
 ```
-
-__Run Tox Unit Tests__
-
-`TESTS=true SOLUM=~/dev/solum vagrant up api`
-
-* the first run will be slow,  but subsequent runs should be quite fast.
-* /solum on the guest vm will be mapped from the path specified by SOLUM from the host.
-* can be rerun on an already running VM by doing : `TESTS=true vagrant provision api`
 
 #### Using
 
