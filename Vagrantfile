@@ -80,8 +80,10 @@ default_json = {
 Vagrant.configure("2") do |config|
 
   # box configs!
-  config.vm.box = 'ubuntu-14.04'
-  config.vm.box_url = 'https://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
+  #config.vm.box = 'ubuntu-14.04'
+  #config.vm.box_url = 'https://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
+   config.vm.box = 'ubuntu1204-3.8'
+   config.vm.box_url = 'https://oss-binaries.phusionpassenger.com/vagrant/boxes/ubuntu-12.04.3-amd64-vbox.box'
 
   # all good servers deserve a solum
   if ENV['SOLUM']
