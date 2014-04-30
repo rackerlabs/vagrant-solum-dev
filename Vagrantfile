@@ -198,9 +198,6 @@ Vagrant.configure("2") do |config|
       su vagrant -c "touch localrc"
       cp -R /opt/stack/solum/contrib/devstack/lib/* /home/vagrant/devstack/lib/
       cp /opt/stack/solum/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
-
-      cp /opt/stack/solum-gui/bridge/scripts/*.sh /home/vagrant
-      su vagrant -c "/opt/stack/solum-gui/start-demo.sh"
     SCRIPT
 
     if SOLUM_IMAGE_FORMAT == 'docker'
@@ -231,6 +228,11 @@ Vagrant.configure("2") do |config|
         su vagrant -c "/home/vagrant/devstack/stack.sh"
       SCRIPT
     end
+
+    devstack.vm.provision :shell, :inline => <<-SCRIPT
+      cp /opt/stack/solum-gui/bridge/scripts/*.sh /home/vagrant
+      su vagrant -c "/opt/stack/solum-gui/start-demo.sh"
+    SCRIPT
 
   end
 
