@@ -82,6 +82,7 @@ Vagrant.configure("2") do |config|
   # box configs!
   config.vm.box = 'ubuntu-12.04-docker'
   config.vm.box_url = 'https://oss-binaries.phusionpassenger.com/vagrant/boxes/2014-04-30/ubuntu-12.04-amd64-vbox.box'
+
   # all good servers deserve a solum
   if ENV['SOLUM']
     config.vm.synced_folder ENV['SOLUM'], "/opt/stack/solum"
@@ -196,9 +197,6 @@ Vagrant.configure("2") do |config|
       su vagrant -c "touch localrc"
       cp -R /opt/stack/solum/contrib/devstack/lib/* /home/vagrant/devstack/lib/
       cp /opt/stack/solum/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
-
-      cp /opt/stack/solum-gui/bridge/scripts/*.sh /home/vagrant
-      su vagrant -c "/opt/stack/solum-gui/start-demo.sh"
     SCRIPT
 
     if SOLUM_IMAGE_FORMAT == 'docker'
@@ -229,6 +227,11 @@ Vagrant.configure("2") do |config|
         su vagrant -c "/home/vagrant/devstack/stack.sh"
       SCRIPT
     end
+
+    devstack.vm.provision :shell, :inline => <<-SCRIPT
+      cp /opt/stack/solum-gui/bridge/scripts/*.sh /home/vagrant
+      su vagrant -c "/opt/stack/solum-gui/start-demo.sh"
+    SCRIPT
 
   end
 
