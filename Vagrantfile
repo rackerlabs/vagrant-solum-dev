@@ -80,9 +80,8 @@ default_json = {
 Vagrant.configure("2") do |config|
 
   # box configs!
-  config.vm.box = 'ubuntu-14.04'
-  config.vm.box_url = 'https://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
-
+  config.vm.box = 'ubuntu-12.04-docker'
+  config.vm.box_url = 'https://oss-binaries.phusionpassenger.com/vagrant/boxes/2014-04-30/ubuntu-12.04-amd64-vbox.box'
   # all good servers deserve a solum
   if ENV['SOLUM']
     config.vm.synced_folder ENV['SOLUM'], "/opt/stack/solum"
@@ -133,6 +132,7 @@ Vagrant.configure("2") do |config|
   config.vm.define :devstack do |devstack|
     devstack.vm.hostname = 'devstack'
     devstack.vm.network "forwarded_port", guest: 80,   host: 8080 # Horizon
+    devstack.vm.network "forwarded_port", guest: 9001,   host: 9001 # Solum Demo GUI
     devstack.vm.network "forwarded_port", guest: 8774, host: 8774 # Compute API
     devstack.vm.network :private_network, ip: '192.168.76.11'
 

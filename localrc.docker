@@ -24,3 +24,5 @@ enable_service solum-api
 enable_service solum-conductor
 enable_service solum-deployer
 enable_service solum-worker
+# disable_service rabbit
+# enable_service qpid
