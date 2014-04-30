@@ -62,8 +62,8 @@ DEVSTACK_REPO      = ENV['DEVSTACK_REPO']      ||= "https://github.com/openstack
 NOVADOCKER_BRANCH  = ENV['NOVADOCKER_BRANCH']  ||= "master"
 NOVADOCKER_REPO    = ENV['NOVADOCKER_REPO']    ||= "https://github.com/stackforge/nova-docker.git"
 SOLUM_BRANCH       = ENV['SOLUM_BRANCH']       ||= "master"
-SOLUM_CLI_BRANCH   = ENV['SOLUM_BRANCH']       ||= "master"
-SOLUM_CLI_REPO     = ENV['SOLUM_REPO']         ||= "https://github.com/stackforge/python-solumclient.git"
+SOLUM_CLI_BRANCH   = ENV['SOLUM_CLI_BRANCH']   ||= "master"
+SOLUM_CLI_REPO     = ENV['SOLUM_CLI_REPO']     ||= "https://github.com/stackforge/python-solumclient.git"
 SOLUM_IMAGE_FORMAT = ENV['SOLUM_IMAGE_FORMAT'] ||= "docker"
 SOLUM_REPO         = ENV['SOLUM_REPO']         ||= "https://github.com/stackforge/solum.git"
 
@@ -209,8 +209,6 @@ Vagrant.configure("2") do |config|
         cp /opt/stack/nova-docker/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
         # WORKAROUND after https://review.openstack.org/#/c/88382/
         sed -i 's/ln -snf/# ln -snf/' /home/vagrant/devstack/lib/nova_plugins/hypervisor-docker
-        # https://review.openstack.org/#/c/91087/
-        sed -i 's:\./docker-registry/run\.sh: :' /home/vagrant/devstack/lib/nova_plugins/hypervisor-docker
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/localrc.docker > /home/vagrant/devstack/localrc
