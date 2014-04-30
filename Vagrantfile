@@ -81,7 +81,7 @@ Vagrant.configure("2") do |config|
 
   # box configs!
   config.vm.box = 'ubuntu-12.04-docker'
-  config.vm.box_url = 'https://oss-binaries.phusionpassenger.com/vagrant/boxes/2014-04-30/ubuntu-12.04-amd64-vbox.box'
+  config.vm.box_url = 'http://55e99fc2f9b7a4001bc8-51d789ac964757728410a7d1f622e9af.r39.cf1.rackcdn.com/ubuntu-12.04-amd64-vbox.box'
 
   # all good servers deserve a solum
   if ENV['SOLUM']
