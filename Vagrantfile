@@ -121,7 +121,7 @@ Vagrant.configure("2") do |config|
     rs.username    = ENV['OS_USERNAME']
     rs.api_key     = ENV['OS_PASSWORD']
     rs.flavor      = /4 GB Performance/
-    rs.image       = /Ubuntu 12.04/
+    rs.image       = /Ubuntu 13.10/
     rs.server_name = "#{ENV['USER']}_Vagrant"
     rs.public_key_path = ENV['PUBLIC_KEY']
   end

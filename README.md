@@ -31,11 +31,14 @@ __Vagrant Rackspace Provider__
 
 * set environment variables
 *  * `OS_USERNAME` `OS_PASSWORD` `PUBLIC_KEY` `PRIVATE_KEY`
-* will use DFW performance 2gb servers.
-* will firewall everything but port 22 ( ssh )
+* will use DFW performance 4gb servers.
 
 ```
 vagrant plugin install vagrant-rackspace
+export OS_USERNAME=rackspace_username
+export OS_PASSWORD=rackspace_api_key
+PRIVATE_KEY=~/.ssh/id_rsa PUBLIC_KEY=~/.ssh/id_rsa.pub \
+    vagrant up devstack --provider=rackspace
 ```
 
 ## Using
