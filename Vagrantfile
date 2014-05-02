@@ -120,7 +120,7 @@ Vagrant.configure("2") do |config|
   config.vm.provider :rackspace do |rs|
     rs.username    = ENV['OS_USERNAME']
     rs.api_key     = ENV['OS_PASSWORD']
-    rs.flavor      = /2 GB Performance/
+    rs.flavor      = /4 GB Performance/
     rs.image       = /Ubuntu 12.04/
     rs.server_name = "#{ENV['USER']}_Vagrant"
     rs.public_key_path = ENV['PUBLIC_KEY']
@@ -175,7 +175,8 @@ Vagrant.configure("2") do |config|
 
     unless ENV['SOLUM']
       devstack.vm.provision :shell, :inline => <<-SCRIPT
-        su vagrant -c "git clone #{SOLUM_REPO} /opt/stack/solum || echo /opt/stack/solum already exists"
+        echo su - vagrant -c "git clone #{SOLUM_REPO} /opt/stack/solum || echo /opt/stack/solum already exists"
+        su - vagrant -c "git clone #{SOLUM_REPO} /opt/stack/solum || echo /opt/stack/solum already exists"
         cd /opt/stack/solum
         su vagrant -c "git checkout #{SOLUM_BRANCH}"
       SCRIPT
@@ -184,14 +185,14 @@ Vagrant.configure("2") do |config|
     # uncomment me for WEBGUI magic
     unless ENV['WEBGUI']
       devstack.vm.provision :shell, :inline => <<-SCRIPT
-        su vagrant -c "git clone #{WEBGUI_REPO} /opt/stack/solum-gui || echo /opt/stack/solum-gui already exists"
+        su - vagrant -c "git clone #{WEBGUI_REPO} /opt/stack/solum-gui || echo /opt/stack/solum-gui already exists"
         cd /opt/stack/solum-gui
         su vagrant -c "git checkout #{WEBGUI_BRANCH}"
       SCRIPT
     end
 
     devstack.vm.provision :shell, :inline => <<-SCRIPT
-      su vagrant -c "git clone #{DEVSTACK_REPO} /home/vagrant/devstack || echo devstack already exists"
+      su - vagrant -c "git clone #{DEVSTACK_REPO} /home/vagrant/devstack || echo devstack already exists"
       cd /home/vagrant/devstack
       su vagrant -c "git checkout #{DEVSTACK_BRANCH}"
       su vagrant -c "touch localrc"
@@ -202,7 +203,7 @@ Vagrant.configure("2") do |config|
     if SOLUM_IMAGE_FORMAT == 'docker'
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         echo 'Set up Nova Docker Driver'
-        su vagrant -c "git clone #{NOVADOCKER_REPO} /opt/stack/nova-docker || echo novadocker already exists"
+        su - vagrant -c "git clone #{NOVADOCKER_REPO} /opt/stack/nova-docker || echo novadocker already exists"
         cd /opt/stack/nova-docker
         su vagrant -c "git checkout #{NOVADOCKER_BRANCH}"
         cp -R /opt/stack/nova-docker/contrib/devstack/lib/* /home/vagrant/devstack/lib/
