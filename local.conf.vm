@@ -1,7 +1,9 @@
+[[local|localrc]]
+
 LOGFILE=/opt/stack/logs/stack.sh.log
 FLAT_INTERFACE=eth1
-PUBLIC_INTERFACE=br101
-FIXED_RANGE=192.168.78.1/24
+PUBLIC_INTERFACE=eth1
+FIXED_RANGE=192.168.76.128/25
 DATABASE_PASSWORD=solum
 RABBIT_PASSWORD=solum
 SERVICE_TOKEN=solum
@@ -10,14 +12,9 @@ ADMIN_PASSWORD=solum
 NOVNC_FROM_PACKAGE=false
 SCREEN_LOGDIR=/opt/stack/logs/screen
 SOLUM_INSTALL_CEDARISH=True
-SOLUM_INSTALL_DOCKERFILE=True
+ENABLED_SERVICES+=,heat,h-api,h-api-cfn,h-api-cw,h-eng
+IMAGE_URLS=http://launchpad.net/cirros/trunk/0.3.0/+download/cirros-0.3.0-x86_64-uec.tar.gz,http://cc42a68525a2dda0151c-9a7653a0ba84bd9342f239dc5349667e.r38.cf1.rackcdn.com/cedarish.qcow2
 
-DOCKER_REGISTRY_IMAGE=samalba/docker-registry
-VIRT_DRIVER=docker
-SOLUM_IMAGE_FORMAT=docker
-
-DEFAULT_IMAGE_NAME=cirros
-IMAGE_URLS=" "
 
 enable_service solum
 enable_service solum-api

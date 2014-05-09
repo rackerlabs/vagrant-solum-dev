@@ -141,6 +141,7 @@ Vagrant.configure("2") do |config|
       v.customize ["modifyvm", :id, "--memory", 4096]
       v.customize ["modifyvm", :id, "--cpus", 2]
       v.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
+      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
     end
     devstack.vm.provider :rackspace do |rs|
       rs.server_name = "#{ENV['USER']}_#{devstack.vm.hostname}"
@@ -195,7 +196,7 @@ Vagrant.configure("2") do |config|
       su - vagrant -c "git clone #{DEVSTACK_REPO} /home/vagrant/devstack || echo devstack already exists"
       cd /home/vagrant/devstack
       su vagrant -c "git checkout #{DEVSTACK_BRANCH}"
-      su vagrant -c "touch localrc"
+      su vagrant -c "touch local.conf"
       cp -R /opt/stack/solum/contrib/devstack/lib/* /home/vagrant/devstack/lib/
       cp /opt/stack/solum/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
     SCRIPT
@@ -212,7 +213,7 @@ Vagrant.configure("2") do |config|
         sed -i 's/ln -snf/# ln -snf/' /home/vagrant/devstack/lib/nova_plugins/hypervisor-docker
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
-        cat /vagrant/localrc.docker > /home/vagrant/devstack/localrc
+        cat /vagrant/local.conf.docker > /home/vagrant/devstack/local.conf
         su vagrant -c "/home/vagrant/devstack/stack.sh"
         # WORKAROUND after https://review.openstack.org/#/c/88382/
         cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
@@ -222,7 +223,7 @@ Vagrant.configure("2") do |config|
       SCRIPT
     else
       devstack.vm.provision :shell, :inline => <<-SCRIPT
-        cat /vagrant/localrc.vm > /home/vagrant/devstack/localrc
+        cat /vagrant/local.conf.vm > /home/vagrant/devstack/local.conf
         su vagrant -c "/home/vagrant/devstack/stack.sh"
       SCRIPT
     end
