@@ -135,13 +135,13 @@ Vagrant.configure("2") do |config|
     devstack.vm.network "forwarded_port", guest: 80,   host: 8080 # Horizon
     devstack.vm.network "forwarded_port", guest: 9001,   host: 9001 # Solum Demo GUI
     devstack.vm.network "forwarded_port", guest: 8774, host: 8774 # Compute API
-    devstack.vm.network :private_network, ip: '192.168.76.11'
+    devstack.vm.network :private_network, ip: '192.168.76.2'
+    devstack.vm.network :private_network, ip: '172.24.4.225', :netmask => "255.255.255.224", :auto_config => false
 
     devstack.vm.provider "virtualbox" do |v|
       v.customize ["modifyvm", :id, "--memory", 4096]
       v.customize ["modifyvm", :id, "--cpus", 2]
-      v.customize ["modifyvm", :id, "--nicpromisc1", "allow-all"]
-      v.customize ["modifyvm", :id, "--nicpromisc2", "allow-all"]
+      v.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
     end
     devstack.vm.provider :rackspace do |rs|
       rs.server_name = "#{ENV['USER']}_#{devstack.vm.hostname}"
@@ -201,6 +201,8 @@ Vagrant.configure("2") do |config|
       cp /opt/stack/solum/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
     SCRIPT
 
+
+
     if SOLUM_IMAGE_FORMAT == 'docker'
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         echo 'Set up Nova Docker Driver'
@@ -209,14 +211,12 @@ Vagrant.configure("2") do |config|
         su vagrant -c "git checkout #{NOVADOCKER_BRANCH}"
         cp -R /opt/stack/nova-docker/contrib/devstack/lib/* /home/vagrant/devstack/lib/
         cp /opt/stack/nova-docker/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
-        # WORKAROUND after https://review.openstack.org/#/c/88382/
-        sed -i 's/ln -snf/# ln -snf/' /home/vagrant/devstack/lib/nova_plugins/hypervisor-docker
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/local.conf.docker > /home/vagrant/devstack/local.conf
         su vagrant -c "/home/vagrant/devstack/stack.sh"
-        # WORKAROUND after https://review.openstack.org/#/c/88382/
-        cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
+        # just in case the rootwrap.d didn't make it.
+        [[ -e /etc/nova/rootwrap.d/docker.filters ]] || cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
         docker pull paulczar/slugrunner
         docker tag paulczar/slugrunner 127.0.0.1:5042/slugrunner
         docker push 127.0.0.1:5042/slugrunner
@@ -236,3 +236,10 @@ Vagrant.configure("2") do |config|
   end
 
 end
+
+
+
+# echo 1 > /proc/sys/net/ipv4/conf/eth2/proxy_arp
+# iptables -t nat -A POSTROUTING -o eth2 -j MASQUERADE
+# ovs-vsctl add-port br-ex eth2
+
