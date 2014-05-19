@@ -208,14 +208,12 @@ Vagrant.configure("2") do |config|
         su vagrant -c "git checkout #{NOVADOCKER_BRANCH}"
         cp -R /opt/stack/nova-docker/contrib/devstack/lib/* /home/vagrant/devstack/lib/
         cp /opt/stack/nova-docker/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
-        # WORKAROUND after https://review.openstack.org/#/c/88382/
-        sed -i 's/ln -snf/# ln -snf/' /home/vagrant/devstack/lib/nova_plugins/hypervisor-docker
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/localrc.docker > /home/vagrant/devstack/localrc
         su vagrant -c "/home/vagrant/devstack/stack.sh"
-        # WORKAROUND after https://review.openstack.org/#/c/88382/
-        cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
+        # just in case the rootwrap.d didn't make it.
+        [[ -e /etc/nova/rootwrap.d/docker.filters ]] || cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
         docker pull paulczar/slugrunner
         docker tag paulczar/slugrunner 127.0.0.1:5042/slugrunner
         docker push 127.0.0.1:5042/slugrunner
