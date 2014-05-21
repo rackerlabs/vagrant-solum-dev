@@ -217,8 +217,8 @@ Vagrant.configure("2") do |config|
         su vagrant -c "/home/vagrant/devstack/stack.sh"
         # just in case the rootwrap.d didn't make it.
         [[ -e /etc/nova/rootwrap.d/docker.filters ]] || cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
-        docker pull paulczar/slugrunner
-        docker tag paulczar/slugrunner 127.0.0.1:5042/slugrunner
+        docker pull solum/slugrunner
+        docker tag solum/slugrunner 127.0.0.1:5042/slugrunner
         docker push 127.0.0.1:5042/slugrunner
       SCRIPT
     else
@@ -237,9 +237,4 @@ Vagrant.configure("2") do |config|
 
 end
 
-
-
-# echo 1 > /proc/sys/net/ipv4/conf/eth2/proxy_arp
-# iptables -t nat -A POSTROUTING -o eth2 -j MASQUERADE
-# ovs-vsctl add-port br-ex eth2
 
