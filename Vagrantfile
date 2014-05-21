@@ -214,8 +214,8 @@ Vagrant.configure("2") do |config|
         su vagrant -c "/home/vagrant/devstack/stack.sh"
         # just in case the rootwrap.d didn't make it.
         [[ -e /etc/nova/rootwrap.d/docker.filters ]] || cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
-        docker pull paulczar/slugrunner
-        docker tag paulczar/slugrunner 127.0.0.1:5042/slugrunner
+        docker pull solum/slugrunner
+        docker tag solum/slugrunner 127.0.0.1:5042/slugrunner
         docker push 127.0.0.1:5042/slugrunner
       SCRIPT
     else
