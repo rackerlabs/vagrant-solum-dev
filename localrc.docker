@@ -12,7 +12,7 @@ SCREEN_LOGDIR=/opt/stack/logs/screen
 SOLUM_INSTALL_CEDARISH=True
 SOLUM_INSTALL_DOCKERFILE=True
 
-DOCKER_REGISTRY_IMAGE=samalba/docker-registry
+# DOCKER_REGISTRY_IMAGE=samalba/docker-registry
 VIRT_DRIVER=docker
 SOLUM_IMAGE_FORMAT=docker
 
