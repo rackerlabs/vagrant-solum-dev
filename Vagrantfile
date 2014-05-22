@@ -63,6 +63,8 @@ SOLUM_CLI_BRANCH   = ENV['SOLUM_CLI_BRANCH']   ||= "master"
 SOLUM_CLI_REPO     = ENV['SOLUM_CLI_REPO']     ||= "https://github.com/stackforge/python-solumclient.git"
 SOLUM_IMAGE_FORMAT = ENV['SOLUM_IMAGE_FORMAT'] ||= "docker"
 SOLUM_REPO         = ENV['SOLUM_REPO']         ||= "https://github.com/stackforge/solum.git"
+MISTRAL_BRANCH     = ENV['MISTRAL_BRANCH']     ||= "master"
+MISTRAL_REPO       = ENV['MISTRAL_REPO']       ||= "https://github.com/stackforge/mistral.git"
 
 ############
 # Chef provisioning stuff for non devstack boxes
@@ -91,6 +93,10 @@ Vagrant.configure("2") do |config|
 
   if ENV['SOLUM_CLI']
     config.vm.synced_folder ENV['SOLUM_CLI'], "/opt/stack/python-solumclient"
+  end
+
+  if ENV['MISTRAL']
+    config.vm.synced_folder ENV['MISTRAL'], "/opt/stack/mistral"
   end
 
   if RACKSPACE
@@ -175,6 +181,15 @@ Vagrant.configure("2") do |config|
       SCRIPT
     end
 
+    unless ENV['MISTRAL']
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        echo su - vagrant -c "git clone #{MISTRAL_REPO} /opt/stack/mistral || echo /opt/stack/mistral already exists"
+        su - vagrant -c "git clone #{MISTRAL_REPO} /opt/stack/mistral || echo /opt/stack/mistral already exists"
+        cd /opt/stack/mistral
+        su vagrant -c "git checkout #{MISTRAL_BRANCH}"
+      SCRIPT
+    end
+
     devstack.vm.provision :shell, :inline => <<-SCRIPT
       su - vagrant -c "git clone #{DEVSTACK_REPO} /home/vagrant/devstack || echo devstack already exists"
       cd /home/vagrant/devstack
@@ -184,7 +199,10 @@ Vagrant.configure("2") do |config|
       cp /opt/stack/solum/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
     SCRIPT
 
-
+    devstack.vm.provision :shell, :inline => <<-SCRIPT
+      cp -R /opt/stack/mistral/contrib/devstack/lib/* /home/vagrant/devstack/lib/
+      cp /opt/stack/mistral/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
+    SCRIPT
 
     if SOLUM_IMAGE_FORMAT == 'docker'
       devstack.vm.provision :shell, :inline => <<-SCRIPT
