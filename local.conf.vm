@@ -29,3 +29,6 @@ enable_service q-dhcp
 enable_service q-l3
 enable_service q-meta
 enable_service neutron
+
+# Enable Mistral
+enable_service mistral
