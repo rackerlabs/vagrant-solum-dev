@@ -64,6 +64,8 @@ SOLUM_CLI_REPO     = ENV['SOLUM_CLI_REPO']     ||= "https://github.com/stackforg
 SOLUM_IMAGE_FORMAT = ENV['SOLUM_IMAGE_FORMAT'] ||= "docker"
 SOLUM_REPO         = ENV['SOLUM_REPO']         ||= "https://github.com/stackforge/solum.git"
 MISTRAL_BRANCH     = ENV['MISTRAL_BRANCH']     ||= "master"
+MISTRAL_CLI_BRANCH = ENV['MISTRAL_CLI_BRANCH'] ||= "master"
+MISTRAL_CLI_REPO   = ENV['MISTRAL_CLI_REPO']   ||= "https://github.com/stackforge/python-mistralclient.git"
 MISTRAL_REPO       = ENV['MISTRAL_REPO']       ||= "https://github.com/stackforge/mistral.git"
 
 ############
@@ -97,6 +99,10 @@ Vagrant.configure("2") do |config|
 
   if ENV['MISTRAL']
     config.vm.synced_folder ENV['MISTRAL'], "/opt/stack/mistral"
+  end
+
+  if ENV['MISTRAL_CLI']
+    config.vm.synced_folder ENV['MISTRAL_CLI'], "/opt/stack/python-mistralclient"
   end
 
   if RACKSPACE
@@ -167,6 +173,7 @@ Vagrant.configure("2") do |config|
             python-pip libmysqlclient-dev vim screen
         pip install virtualenv
         pip install tox==1.6.1
+        pip install setuptools
         mkdir -p /opt/stack
         chown vagrant /opt/stack
       SCRIPT
@@ -190,6 +197,15 @@ Vagrant.configure("2") do |config|
       SCRIPT
     end
 
+    unless ENV['MISTRAL_CLI']
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        echo su - vagrant -c "git clone #{MISTRAL_CLI_REPO} /opt/stack/python-mistralclient || echo /opt/stack/python-mistralclient already exists"
+        su - vagrant -c "git clone #{MISTRAL_CLI_REPO} /opt/stack/python-mistralclient || echo /opt/stack/python-mistralclient already exists"
+        cd /opt/stack/python-mistralclient
+        su vagrant -c "git checkout #{MISTRAL_CLI_BRANCH}"
+      SCRIPT
+    end
+
     devstack.vm.provision :shell, :inline => <<-SCRIPT
       su - vagrant -c "git clone #{DEVSTACK_REPO} /home/vagrant/devstack || echo devstack already exists"
       cd /home/vagrant/devstack
@@ -202,6 +218,8 @@ Vagrant.configure("2") do |config|
     devstack.vm.provision :shell, :inline => <<-SCRIPT
       cp -R /opt/stack/mistral/contrib/devstack/lib/* /home/vagrant/devstack/lib/
       cp /opt/stack/mistral/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
+      cd /opt/stack/python-mistralclient
+      python setup.py install
     SCRIPT
 
     if SOLUM_IMAGE_FORMAT == 'docker'
