@@ -67,6 +67,8 @@ MISTRAL_BRANCH     = ENV['MISTRAL_BRANCH']     ||= "master"
 MISTRAL_CLI_BRANCH = ENV['MISTRAL_CLI_BRANCH'] ||= "master"
 MISTRAL_CLI_REPO   = ENV['MISTRAL_CLI_REPO']   ||= "https://github.com/stackforge/python-mistralclient.git"
 MISTRAL_REPO       = ENV['MISTRAL_REPO']       ||= "https://github.com/stackforge/mistral.git"
+WEBGUI_BRANCH      = ENV['WEBGUI_BRANCH']      ||= "master"
+WEBGUI_REPO        = ENV['WEBGUI_REPO']        ||= "https://github.com/rackerlabs/solum-m2demo-ui.git"
 
 ############
 # Chef provisioning stuff for non devstack boxes
@@ -91,6 +93,10 @@ Vagrant.configure("2") do |config|
 
   if ENV['NOVADOCKER']
     config.vm.synced_folder ENV['NOVADOCKER'], '/opt/stack/nova-docker'
+  end
+
+  if ENV['WEBGUI']
+    config.vm.synced_folder ENV['WEBGUI'], "/opt/stack/solum-gui"
   end
 
   if ENV['SOLUM_CLI']
@@ -206,6 +212,14 @@ Vagrant.configure("2") do |config|
       SCRIPT
     end
 
+    unless ENV['WEBGUI']
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        su - vagrant -c "git clone #{WEBGUI_REPO} /opt/stack/solum-gui || echo /opt/stack/solum-gui already exists"
+        cd /opt/stack/solum-gui
+        su vagrant -c "git checkout #{WEBGUI_BRANCH}"
+      SCRIPT
+    end
+
     devstack.vm.provision :shell, :inline => <<-SCRIPT
       su - vagrant -c "git clone #{DEVSTACK_REPO} /home/vagrant/devstack || echo devstack already exists"
       cd /home/vagrant/devstack
@@ -244,6 +258,13 @@ Vagrant.configure("2") do |config|
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         cat /vagrant/local.conf.vm > /home/vagrant/devstack/local.conf
         su vagrant -c "/home/vagrant/devstack/stack.sh"
+      SCRIPT
+    end
+
+    if ENV['USE_SOLUM_UI']
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        cp /opt/stack/solum-gui/bridge/scripts/*.sh /home/vagrant
+        su vagrant -c "/opt/stack/solum-gui/start-demo.sh"
       SCRIPT
     end
 
