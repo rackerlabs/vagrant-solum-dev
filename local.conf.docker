@@ -36,5 +36,5 @@ enable_service neutron
 
 disable_service tempest
 
-# Enable Mistral
 enable_service mistral
+enable_service barbican

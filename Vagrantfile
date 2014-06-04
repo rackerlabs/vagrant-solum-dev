@@ -67,6 +67,10 @@ MISTRAL_BRANCH        = ENV['MISTRAL_BRANCH']        ||= "master"
 MISTRAL_REPO          = ENV['MISTRAL_REPO']          ||= "https://github.com/stackforge/mistral.git"
 MISTRALCLIENT_BRANCH  = ENV['MISTRALCLIENT_BRANCH']  ||= "master"
 MISTRALCLIENT_REPO    = ENV['MISTRALCLIENT_REPO']    ||= "https://github.com/stackforge/python-mistralclient.git"
+BARBICAN_BRANCH       = ENV['BARBICAN_BRANCH']       ||= "master"
+BARBICAN_REPO         = ENV['BARBICAN_REPO']         ||= "https://github.com/openstack/barbican.git"
+BARBICANCLIENT_BRANCH = ENV['BARBICANCLIENT_BRANCH'] ||= "master"
+BARBICANCLIENT_REPO   = ENV['BARBICANCLIENT_REPO']   ||= "https://github.com/openstack/python-barbicanclient.git"
 WEBGUI_BRANCH         = ENV['WEBGUI_BRANCH']         ||= "master"
 WEBGUI_REPO           = ENV['WEBGUI_REPO']           ||= "https://github.com/rackerlabs/solum-m2demo-ui.git"
 
@@ -109,6 +113,14 @@ Vagrant.configure("2") do |config|
 
   if ENV['MISTRALCLIENT']
     config.vm.synced_folder ENV['MISTRALCLIENT'], "/opt/stack/python-mistralclient"
+  end
+
+  if ENV['BARBICAN']
+    config.vm.synced_folder ENV['BARBICAN'], "/opt/stack/barbican"
+  end
+
+  if ENV['BARBICANCLIENT']
+    config.vm.synced_folder ENV['BARBICANCLIENT'], "/opt/stack/python-barbicanclient"
   end
 
   if RACKSPACE
@@ -212,6 +224,24 @@ Vagrant.configure("2") do |config|
       SCRIPT
     end
 
+    unless ENV['BARBICAN']
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        echo su - vagrant -c "git clone #{BARBICAN_REPO} /opt/stack/barbican || echo /opt/stack/barbican already exists"
+        su - vagrant -c "git clone #{BARBICAN_REPO} /opt/stack/barbican || echo /opt/stack/barbican already exists"
+        cd /opt/stack/barbican
+        su vagrant -c "git checkout #{BARBICAN_BRANCH}"
+      SCRIPT
+    end
+
+    unless ENV['BARBICANCLIENT']
+      devstack.vm.provision :shell, :inline => <<-SCRIPT
+        echo su - vagrant -c "git clone #{BARBICANCLIENT_REPO} /opt/stack/python-barbicanclient || echo /opt/stack/python-barbicanclient already exists"
+        su - vagrant -c "git clone #{BARBICANCLIENT_REPO} /opt/stack/python-barbicanclient || echo /opt/stack/python-barbicanclient already exists"
+        cd /opt/stack/python-barbicanclient
+        su vagrant -c "git checkout #{BARBICANCLIENT_BRANCH}"
+      SCRIPT
+    end
+
     unless ENV['WEBGUI']
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         su - vagrant -c "git clone #{WEBGUI_REPO} /opt/stack/solum-gui || echo /opt/stack/solum-gui already exists"
@@ -233,6 +263,11 @@ Vagrant.configure("2") do |config|
       cp -R /opt/stack/mistral/contrib/devstack/lib/* /home/vagrant/devstack/lib/
       cp /opt/stack/mistral/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
       cd /opt/stack/python-mistralclient
+      python setup.py install
+
+      cp -R /opt/stack/barbican/contrib/devstack/lib/* /home/vagrant/devstack/lib/
+      cp /opt/stack/barbican/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
+      cd /opt/stack/python-barbicanclient
       python setup.py install
     SCRIPT
 
