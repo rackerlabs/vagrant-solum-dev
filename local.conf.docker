@@ -10,6 +10,7 @@ NOVNC_FROM_PACKAGE=false
 SCREEN_LOGDIR=/opt/stack/logs/screen
 SOLUM_INSTALL_CEDARISH=True
 SOLUM_INSTALL_DOCKERFILE=True
+GIT_BASE=https://git.openstack.org
 
 # DOCKER_REGISTRY_IMAGE=registry:0.6.9
 VIRT_DRIVER=docker
