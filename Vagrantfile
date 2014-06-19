@@ -282,7 +282,9 @@ Vagrant.configure("2") do |config|
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/local.conf.docker > /home/vagrant/devstack/local.conf
+        pushd /home/vagrant/devstack
         su vagrant -c "/home/vagrant/devstack/stack.sh"
+        popd
         # just in case the rootwrap.d didn't make it.
         [[ -e /etc/nova/rootwrap.d/docker.filters ]] || cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
         docker pull solum/slugrunner
@@ -292,7 +294,9 @@ Vagrant.configure("2") do |config|
     else
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         cat /vagrant/local.conf.vm > /home/vagrant/devstack/local.conf
+        pushd /home/vagrant/devstack
         su vagrant -c "/home/vagrant/devstack/stack.sh"
+        popd
       SCRIPT
     end
 
