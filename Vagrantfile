@@ -287,9 +287,14 @@ Vagrant.configure("2") do |config|
         popd
         # just in case the rootwrap.d didn't make it.
         [[ -e /etc/nova/rootwrap.d/docker.filters ]] || cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
-        docker pull solum/slugrunner
-        docker tag solum/slugrunner 127.0.0.1:5042/slugrunner
-        docker push 127.0.0.1:5042/slugrunner
+
+        . /home/vagrant/devstack/openrc
+        docker pull solum/slugbuilder:latest
+        docker save solum/slugbuilder | OS_USERNAME=admin glance image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugbuilder"
+        docker pull solum/slugrunner:latest
+        docker save solum/slugrunner | OS_USERNAME=admin glance image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugrunner"
+        docker pull solum/slugtester:latest
+        docker save solum/slugtester | OS_USERNAME=admin glance image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugtester"
       SCRIPT
     else
       devstack.vm.provision :shell, :inline => <<-SCRIPT
