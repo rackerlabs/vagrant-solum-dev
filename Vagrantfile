@@ -123,6 +123,14 @@ Vagrant.configure("2") do |config|
     config.vm.synced_folder ENV['BARBICANCLIENT'], "/opt/stack/python-barbicanclient"
   end
 
+  if ENV['HEAT']
+    config.vm.synced_folder ENV['HEAT'], "/opt/stack/heat"
+  end
+
+  if ENV['HEATCLIENT']
+    config.vm.synced_folder ENV['HEATCLIENT'], "/opt/stack/python-heatclient"
+  end
+
   if RACKSPACE
     unless ENV['OS_USERNAME']
       puts "Set ENV['OS_USERNAME'] to use rackspace provisioner"
