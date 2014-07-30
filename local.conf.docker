@@ -34,7 +34,5 @@ enable_service q-l3
 enable_service q-meta
 enable_service neutron
 
-disable_service tempest
-
 enable_service mistral
 enable_service barbican
