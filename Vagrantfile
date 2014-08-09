@@ -31,6 +31,43 @@ else
   RACKSPACE = false
 end
 
+if ARGV.include? '--provider=openstack'
+  require 'vagrant-openstack-provider'
+  OPENSTACK = true
+  unless ENV['PRIVATE_KEY']
+    raise "Set ENV['PRIVATE_KEY'] to use openstack provider"
+  end
+  unless ENV['OS_USERNAME']
+    puts "Set ENV['OS_USERNAME'] to use openstack provider"
+  end
+  unless ENV['OS_PASSWORD']
+    puts "Set ENV['OS_PASSWORD'] to use openstack provider"
+  end
+  unless ENV['OS_AUTH_URL']
+    puts "Set ENV['OS_AUTH_URL'] to use openstack provider"
+  end
+  unless ENV['OS_TENANT_NAME']
+    puts "Set ENV['OS_TENANT_NAME'] to use openstack provider"
+  end
+  unless ENV['OS_FLOATING_IP']
+    puts "Set ENV['OS_FLOATING_IP'] to use openstack provider"
+  end
+  unless ENV['OS_FLAVOR']
+    puts "Set ENV['OS_FLAVOR'] to use openstack provider"
+  end
+  unless ENV['OS_IMAGE']
+    puts "Set ENV['OS_IMAGE'] to use openstack provider"
+  end
+  unless ENV['OS_KEYPAIR_NAME']
+    puts "Set ENV['OS_KEYPAIR_NAME'] to use openstack provider"
+  end
+  unless ENV['OS_SSH_USERNAME']
+    puts "Set ENV['OS_SSH_USERNAME'] to use openstack provider"
+  end
+else
+  OPENSTACK = false
+end
+
 if ARGV[0] == 'help' and ARGV[1] == 'vagrantfile'
   puts <<eof
 
@@ -87,8 +124,8 @@ default_json = {
 Vagrant.configure("2") do |config|
 
   # box configs!
-  config.vm.box = 'ubuntu-12.04-docker'
-  config.vm.box_url = 'http://55e99fc2f9b7a4001bc8-51d789ac964757728410a7d1f622e9af.r39.cf1.rackcdn.com/ubuntu-12.04-amd64-vbox.box'
+  config.vm.box = 'ubuntu-14.04'
+  config.vm.box_url = 'http://opscode-vm-bento.s3.amazonaws.com/vagrant/virtualbox/opscode_ubuntu-14.04_chef-provisionerless.box'
 
   # all good servers deserve a solum
   if ENV['SOLUM']
@@ -151,12 +188,35 @@ Vagrant.configure("2") do |config|
     rs.username    = ENV['OS_USERNAME']
     rs.api_key     = ENV['OS_PASSWORD']
     rs.flavor      = /4 GB Performance/
-    rs.image       = /Ubuntu 13.10/
+    rs.image       = /Ubuntu 14.04/
     rs.server_name = "#{ENV['USER']}_Vagrant"
     rs.public_key_path = ENV['PUBLIC_KEY']
   end
   if ENV['PRIVATE_KEY']
     config.ssh.private_key_path = ENV['PRIVATE_KEY']
+  end
+
+  if OPENSTACK
+    config.vm.provision :shell, :inline => <<-SCRIPT
+      iptables -A INPUT -m conntrack --ctstate ESTABLISHED,RELATED -j ACCEPT
+      iptables -A INPUT -i eth0 -p tcp --dport ssh -j ACCEPT
+      iptables -A INPUT -i eth0 -j DROP
+      echo 'UseDNS no' >> /etc/ssh/sshd_config
+      echo 'PasswordAuthentication no' >> /etc/ssh/sshd_config
+      service ssh reload
+    SCRIPT
+  end
+  config.vm.provider :openstack do |os, override|
+    os.server_name = "#{ENV['USER']}_Vagrant"
+    os.username = ENV['OS_USERNAME']
+    os.password = ENV['OS_PASSWORD']
+    os.openstack_auth_url = ENV['OS_AUTH_URL']
+    os.tenant_name = ENV['OS_TENANT_NAME']
+    os.floating_ip = ENV['OS_FLOATING_IP']
+    os.flavor = ENV['OS_FLAVOR']
+    os.image = ENV['OS_IMAGE']
+    os.keypair_name = ENV['OS_KEYPAIR_NAME']
+    os.ssh_username = ENV['OS_SSH_USERNAME']
   end
 
   # DevStack with Nova that may have Docker driver and/or Solum.
@@ -323,5 +383,3 @@ Vagrant.configure("2") do |config|
   end
 
 end
-
-
