@@ -124,8 +124,7 @@ default_json = {
 Vagrant.configure("2") do |config|
 
   # box configs!
-  config.vm.box = 'ubuntu-12.04-docker'
-  config.vm.box_url = 'http://55e99fc2f9b7a4001bc8-51d789ac964757728410a7d1f622e9af.r39.cf1.rackcdn.com/ubuntu-12.04-amd64-vbox.box'
+  config.vm.box = 'ubuntu/trusty64'
 
   # all good servers deserve a solum
   if ENV['SOLUM']
@@ -188,7 +187,7 @@ Vagrant.configure("2") do |config|
     rs.username    = ENV['OS_USERNAME']
     rs.api_key     = ENV['OS_PASSWORD']
     rs.flavor      = /4 GB Performance/
-    rs.image       = /Ubuntu 13.10/
+    rs.image       = /Ubuntu 14.04/
     rs.server_name = "#{ENV['USER']}_Vagrant"
     rs.public_key_path = ENV['PUBLIC_KEY']
   end

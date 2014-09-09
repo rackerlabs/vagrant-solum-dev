@@ -15,6 +15,7 @@ GIT_BASE=https://git.openstack.org
 # DOCKER_REGISTRY_IMAGE=registry:0.6.9
 VIRT_DRIVER=docker
 SOLUM_IMAGE_FORMAT=docker
+SOLUM_INSTALL_DRONE=True
 
 DEFAULT_IMAGE_NAME=cirros
 IMAGE_URLS=" "
