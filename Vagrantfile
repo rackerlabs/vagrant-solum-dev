@@ -224,6 +224,7 @@ Vagrant.configure("2") do |config|
     devstack.vm.network "forwarded_port", guest: 80,   host: 8080 # Horizon
     devstack.vm.network "forwarded_port", guest: 9001,   host: 9001 # Solum Demo GUI
     devstack.vm.network "forwarded_port", guest: 8774, host: 8774 # Compute API
+    devstack.vm.network "forwarded_port", guest: 9777, host: 9777 # Solum API
     devstack.vm.network :private_network, ip: '192.168.76.2'
     devstack.vm.network :private_network, ip: '172.24.4.225', :netmask => "255.255.255.224", :auto_config => false
 
