@@ -262,6 +262,8 @@ Vagrant.configure("2") do |config|
         pip install setuptools
         mkdir -p /opt/stack
         chown vagrant /opt/stack
+        mkdir -p /var/log/solum/worker
+        chown vagrant /var/log/solum/worker
       SCRIPT
     end
 
