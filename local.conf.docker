@@ -16,6 +16,7 @@ GIT_BASE=https://git.openstack.org
 VIRT_DRIVER=docker
 SOLUM_IMAGE_FORMAT=docker
 SOLUM_INSTALL_DRONE=True
+SOLUM_DRONE_URL=http://f4e976e84d9bb06108f6-ff40fde470ff7ecea31955ec7c479471.r49.cf2.rackcdn.com/drone.deb
 
 DEFAULT_IMAGE_NAME=cirros
 IMAGE_URLS=" "
