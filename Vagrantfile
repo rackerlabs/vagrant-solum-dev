@@ -229,7 +229,7 @@ Vagrant.configure("2") do |config|
     devstack.vm.network :private_network, ip: '172.24.4.225', :netmask => "255.255.255.224", :auto_config => false
 
     devstack.vm.provider "virtualbox" do |v|
-      v.customize ["modifyvm", :id, "--memory", 4096]
+      v.customize ["modifyvm", :id, "--memory", 6144]
       v.customize ["modifyvm", :id, "--cpus", 2]
       v.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
     end
