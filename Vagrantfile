@@ -344,9 +344,11 @@ Vagrant.configure("2") do |config|
     if SOLUM_IMAGE_FORMAT == 'docker'
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         echo 'Set up Nova Docker Driver'
-        su - vagrant -c "git clone #{NOVADOCKER_REPO} /opt/stack/nova-docker || echo novadocker already exists"
-        cd /opt/stack/nova-docker
-        su vagrant -c "git checkout #{NOVADOCKER_BRANCH}"
+        if [[ ! -d /opt/stack/nova-docker ]]; then
+          su - vagrant -c "git clone #{NOVADOCKER_REPO} /opt/stack/nova-docker"
+          cd /opt/stack/nova-docker
+          su vagrant -c "git checkout #{NOVADOCKER_BRANCH}"
+        fi
         cp -R /opt/stack/nova-docker/contrib/devstack/lib/* /home/vagrant/devstack/lib/
         cp /opt/stack/nova-docker/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
         useradd docker || echo "user docker already exists"
