@@ -360,7 +360,6 @@ Vagrant.configure("2") do |config|
         cat /vagrant/local.conf.docker > /home/vagrant/devstack/local.conf
         pushd /home/vagrant/devstack
         su vagrant -c "/home/vagrant/devstack/stack.sh"
-        su vagrant -c "screen -r stack -X hardstatus alwayslastline '%{= .} %-Lw%{= .}%> %n%f %t*%{= .}%+Lw%< %-=%{g}(%{d}%H/%l%{g})'"
         popd
         # just in case the rootwrap.d didn't make it.
         [[ -e /etc/nova/rootwrap.d/docker.filters ]] || cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
