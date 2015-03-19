@@ -229,7 +229,7 @@ Vagrant.configure("2") do |config|
     devstack.vm.network :private_network, ip: '172.24.4.225', :netmask => "255.255.255.224", :auto_config => false
 
     devstack.vm.provider "virtualbox" do |v|
-      v.customize ["modifyvm", :id, "--memory", 6144]
+      v.customize ["modifyvm", :id, "--memory", 10000]
       v.customize ["modifyvm", :id, "--cpus", 2]
       v.customize ["modifyvm", :id, "--nicpromisc3", "allow-all"]
     end
@@ -256,7 +256,7 @@ Vagrant.configure("2") do |config|
         apt-get update
         apt-get -y install git socat curl wget build-essential python-mysqldb \
             python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
-            python-pip libmysqlclient-dev vim screen
+            python-pip libmysqlclient-dev vim screen emacs
         pip install virtualenv
         pip install tox==1.6.1
         pip install setuptools
@@ -264,6 +264,8 @@ Vagrant.configure("2") do |config|
         chown vagrant /opt/stack
         mkdir -p /var/log/solum/worker
         chown vagrant /var/log/solum/worker
+        mkdir -p /var/log/solum/deployer
+        chown vagrant /var/log/solum/deployer
       SCRIPT
     end
 
