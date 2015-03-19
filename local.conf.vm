@@ -20,7 +20,6 @@ SOLUM_DRONE_URL=http://f4e976e84d9bb06108f6-ff40fde470ff7ecea31955ec7c479471.r49
 
 enable_service solum
 enable_service solum-api
-enable_service solum-build-api
 enable_service solum-conductor
 enable_service solum-deployer
 enable_service solum-worker

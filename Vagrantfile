@@ -135,6 +135,10 @@ Vagrant.configure("2") do |config|
     config.vm.synced_folder ENV['NOVADOCKER'], '/opt/stack/nova-docker'
   end
 
+  if ENV['SWIFT']
+    config.vm.synced_folder ENV['SWIFT'], "/opt/stack/swift"
+  end
+
   if ENV['WEBGUI']
     config.vm.synced_folder ENV['WEBGUI'], "/opt/stack/solum-gui"
   end
