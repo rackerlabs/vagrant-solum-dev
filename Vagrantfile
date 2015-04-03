@@ -260,10 +260,12 @@ Vagrant.configure("2") do |config|
         apt-get update
         apt-get -y install git socat curl wget build-essential python-mysqldb \
             python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
-            python-pip libmysqlclient-dev vim screen emacs
+            python-pip libmysqlclient-dev vim screen emacs libldap2-dev \
+            libsasl2-dev
         pip install virtualenv
         pip install tox==1.6.1
         pip install setuptools
+        pip install python-ldap
         mkdir -p /opt/stack
         chown vagrant /opt/stack
         mkdir -p /var/log/solum/worker
