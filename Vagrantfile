@@ -258,10 +258,9 @@ Vagrant.configure("2") do |config|
 
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         apt-get update
-        apt-get -y install git socat curl wget build-essential python-mysqldb \
-            python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
-            python-pip libmysqlclient-dev vim screen emacs libldap2-dev \
-            libsasl2-dev
+        apt-get -y install build-essential curl emacs git git-core libldap2-dev libmysqlclient-dev \
+                           libsasl2-dev libssl-dev libxml2-dev libxslt-dev python-dev \
+                           python-mysqldb python-pip python-pip python3-dev screen socat vim wget
         pip install virtualenv
         pip install tox==1.6.1
         pip install setuptools
