@@ -363,6 +363,7 @@ Vagrant.configure("2") do |config|
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/local.conf.docker > /home/vagrant/devstack/local.conf
         pushd /home/vagrant/devstack
+        export REQUIREMENTS_MODE=soft
         su vagrant -c "/home/vagrant/devstack/stack.sh"
         popd
         # just in case the rootwrap.d didn't make it.
