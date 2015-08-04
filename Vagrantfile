@@ -93,8 +93,8 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 
 DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "master"
 DEVSTACK_REPO         = ENV['DEVSTACK_REPO']         ||= "https://github.com/openstack-dev/devstack.git"
-NOVADOCKER_BRANCH     = ENV['NOVADOCKER_BRANCH']     ||= "master"
-NOVADOCKER_REPO       = ENV['NOVADOCKER_REPO']       ||= "https://github.com/stackforge/nova-docker.git"
+NOVADOCKER_BRANCH     = ENV['NOVADOCKER_BRANCH']     ||= "reconciling-changes"
+NOVADOCKER_REPO       = ENV['NOVADOCKER_REPO']       ||= "https://github.com/devdattakulkarni/nova-docker.git"
 SOLUM_BRANCH          = ENV['SOLUM_BRANCH']          ||= "master"
 SOLUM_REPO            = ENV['SOLUM_REPO']            ||= "https://github.com/stackforge/solum.git"
 SOLUMCLIENT_BRANCH    = ENV['SOLUMCLIENT_BRANCH']    ||= "master"
