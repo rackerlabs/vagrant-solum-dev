@@ -100,10 +100,6 @@ SOLUM_REPO            = ENV['SOLUM_REPO']            ||= "https://github.com/sta
 SOLUMCLIENT_BRANCH    = ENV['SOLUMCLIENT_BRANCH']    ||= "master"
 SOLUMCLIENT_REPO      = ENV['SOLUMCLIENT_REPO']      ||= "https://github.com/stackforge/python-solumclient.git"
 SOLUM_IMAGE_FORMAT    = ENV['SOLUM_IMAGE_FORMAT']    ||= "docker"
-MISTRAL_BRANCH        = ENV['MISTRAL_BRANCH']        ||= "master"
-MISTRAL_REPO          = ENV['MISTRAL_REPO']          ||= "https://github.com/stackforge/mistral.git"
-MISTRALCLIENT_BRANCH  = ENV['MISTRALCLIENT_BRANCH']  ||= "master"
-MISTRALCLIENT_REPO    = ENV['MISTRALCLIENT_REPO']    ||= "https://github.com/stackforge/python-mistralclient.git"
 BARBICAN_BRANCH       = ENV['BARBICAN_BRANCH']       ||= "master"
 BARBICAN_REPO         = ENV['BARBICAN_REPO']         ||= "https://github.com/openstack/barbican.git"
 BARBICANCLIENT_BRANCH = ENV['BARBICANCLIENT_BRANCH'] ||= "master"
@@ -149,14 +145,6 @@ Vagrant.configure("2") do |config|
 
   if ENV['SOLUMCLIENT']
     config.vm.synced_folder ENV['SOLUMCLIENT'], "/opt/stack/python-solumclient"
-  end
-
-  if ENV['MISTRAL']
-    config.vm.synced_folder ENV['MISTRAL'], "/opt/stack/mistral"
-  end
-
-  if ENV['MISTRALCLIENT']
-    config.vm.synced_folder ENV['MISTRALCLIENT'], "/opt/stack/python-mistralclient"
   end
 
   if ENV['BARBICAN']
@@ -288,24 +276,6 @@ Vagrant.configure("2") do |config|
       SCRIPT
     end
 
-    unless ENV['MISTRAL']
-      devstack.vm.provision :shell, :inline => <<-SCRIPT
-        echo su - vagrant -c "git clone #{MISTRAL_REPO} /opt/stack/mistral || echo /opt/stack/mistral already exists"
-        su - vagrant -c "git clone #{MISTRAL_REPO} /opt/stack/mistral || echo /opt/stack/mistral already exists"
-        cd /opt/stack/mistral
-        su vagrant -c "git checkout #{MISTRAL_BRANCH}"
-      SCRIPT
-    end
-
-    unless ENV['MISTRALCLIENT']
-      devstack.vm.provision :shell, :inline => <<-SCRIPT
-        echo su - vagrant -c "git clone #{MISTRALCLIENT_REPO} /opt/stack/python-mistralclient || echo /opt/stack/python-mistralclient already exists"
-        su - vagrant -c "git clone #{MISTRALCLIENT_REPO} /opt/stack/python-mistralclient || echo /opt/stack/python-mistralclient already exists"
-        cd /opt/stack/python-mistralclient
-        su vagrant -c "git checkout #{MISTRALCLIENT_BRANCH}"
-      SCRIPT
-    end
-
     unless ENV['BARBICAN']
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         echo su - vagrant -c "git clone #{BARBICAN_REPO} /opt/stack/barbican || echo /opt/stack/barbican already exists"
@@ -342,11 +312,6 @@ Vagrant.configure("2") do |config|
     SCRIPT
 
     devstack.vm.provision :shell, :inline => <<-SCRIPT
-      cp -R /opt/stack/mistral/contrib/devstack/lib/* /home/vagrant/devstack/lib/
-      cp /opt/stack/mistral/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
-      cd /opt/stack/python-mistralclient
-      python setup.py install
-
       cp -R /opt/stack/barbican/contrib/devstack/lib/* /home/vagrant/devstack/lib/
       cp /opt/stack/barbican/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
       cd /opt/stack/python-barbicanclient
