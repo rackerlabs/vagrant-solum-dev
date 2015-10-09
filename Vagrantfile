@@ -131,6 +131,10 @@ Vagrant.configure("2") do |config|
     config.vm.synced_folder ENV['SOLUM'], "/opt/stack/solum"
   end
 
+  if ENV['SOLUM_PARENT']
+    config.vm.synced_folder ENV['SOLUM'], "/opt/stack/solum_parent"
+  end
+
   if ENV['NOVADOCKER']
     config.vm.synced_folder ENV['NOVADOCKER'], '/opt/stack/nova-docker'
   end
@@ -370,14 +374,14 @@ Vagrant.configure("2") do |config|
         [[ -e /etc/nova/rootwrap.d/docker.filters ]] || cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
 
         . /home/vagrant/devstack/openrc admin
-        glance image-list
+        glance --os-image-api-version 1 image-list
         if [[ $? == 0 ]]; then
             docker pull solum/slugbuilder:latest
-            docker save solum/slugbuilder | glance image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugbuilder"
+            docker save solum/slugbuilder | glance --os-image-api-version 1 image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugbuilder"
             docker pull solum/slugrunner:latest
-            docker save solum/slugrunner | glance image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugrunner"
+            docker save solum/slugrunner | glance --os-image-api-version 1 image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugrunner"
             docker pull solum/slugtester:latest
-            docker save solum/slugtester | glance image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugtester"
+            docker save solum/slugtester | glance --os-image-api-version 1 image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugtester"
         else
             echo There was a problem talking to Glance. You will need to pull and save solum/slugbuilder, solum/slugrunner, and solum/slugtester manually.
         fi
