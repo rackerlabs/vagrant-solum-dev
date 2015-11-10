@@ -91,7 +91,7 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 # Variables and fun things to make my life easier.
 ############
 
-DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "master"
+DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "73de4a42d96780b0a14f36e43dd6cb7934101209"
 DEVSTACK_REPO         = ENV['DEVSTACK_REPO']         ||= "https://github.com/openstack-dev/devstack.git"
 NOVADOCKER_BRANCH     = ENV['NOVADOCKER_BRANCH']     ||= "reconciling-changes"
 NOVADOCKER_REPO       = ENV['NOVADOCKER_REPO']       ||= "https://github.com/devdattakulkarni/nova-docker.git"
