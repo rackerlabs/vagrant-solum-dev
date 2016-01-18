@@ -92,6 +92,7 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 ############
 
 DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "73de4a42d96780b0a14f36e43dd6cb7934101209"
+#DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "master"
 DEVSTACK_REPO         = ENV['DEVSTACK_REPO']         ||= "https://github.com/openstack-dev/devstack.git"
 NOVADOCKER_BRANCH     = ENV['NOVADOCKER_BRANCH']     ||= "reconciling-changes"
 NOVADOCKER_REPO       = ENV['NOVADOCKER_REPO']       ||= "https://github.com/devdattakulkarni/nova-docker.git"
@@ -273,6 +274,7 @@ Vagrant.configure("2") do |config|
         su - vagrant -c "git clone #{SOLUM_REPO} /opt/stack/solum || echo /opt/stack/solum already exists"
         cd /opt/stack/solum
         su vagrant -c "git checkout #{SOLUM_BRANCH}"
+
       SCRIPT
     end
 
@@ -307,8 +309,8 @@ Vagrant.configure("2") do |config|
       cd /home/vagrant/devstack
       su vagrant -c "git checkout #{DEVSTACK_BRANCH}"
       su vagrant -c "touch local.conf"
-      cp -R /opt/stack/solum/contrib/devstack/lib/* /home/vagrant/devstack/lib/
-      cp /opt/stack/solum/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
+      cp -R /opt/stack/solum/contrib/add-ons/lib/* /home/vagrant/devstack/lib/
+      cp /opt/stack/solum/contrib/add-ons/extras.d/* /home/vagrant/devstack/extras.d/
     SCRIPT
 
     devstack.vm.provision :shell, :inline => <<-SCRIPT
@@ -350,6 +352,7 @@ Vagrant.configure("2") do |config|
         else
             echo There was a problem talking to Glance. You will need to pull and save solum/slugbuilder, solum/slugrunner, and solum/slugtester manually.
         fi
+
       SCRIPT
     else
       devstack.vm.provision :shell, :inline => <<-SCRIPT
