@@ -345,8 +345,6 @@ Vagrant.configure("2") do |config|
           cd /opt/stack/nova-docker
           su vagrant -c "git checkout #{NOVADOCKER_BRANCH}"
         fi
-        cp -R /opt/stack/nova-docker/contrib/devstack/lib/* /home/vagrant/devstack/lib/
-        cp /opt/stack/nova-docker/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/local.conf.docker > /home/vagrant/devstack/local.conf
