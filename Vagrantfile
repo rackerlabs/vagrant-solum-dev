@@ -91,15 +91,20 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 # Variables and fun things to make my life easier.
 ############
 
-DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "73de4a42d96780b0a14f36e43dd6cb7934101209"
-#DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "master"
+#DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "73de4a42d96780b0a14f36e43dd6cb7934101209"
+DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "master"
 DEVSTACK_REPO         = ENV['DEVSTACK_REPO']         ||= "https://github.com/openstack-dev/devstack.git"
 NOVADOCKER_BRANCH     = ENV['NOVADOCKER_BRANCH']     ||= "reconciling-changes"
 NOVADOCKER_REPO       = ENV['NOVADOCKER_REPO']       ||= "https://github.com/devdattakulkarni/nova-docker.git"
+#NOVADOCKER_BRANCH     = ENV['NOVADOCKER_BRANCH']     ||= "master"
+#NOVADOCKER_REPO       = ENV['NOVADOCKER_REPO']       ||= "https://github.com/openstack/nova-docker.git"
+NOVA_BRANCH           = ENV['NOVA_BRANCH']           ||= "e52d236a3f1740997890cad9d4726df01d5a7e5d"
+#NOVA_BRANCH           = ENV['NOVA_BRANCH']           ||= "master"
+NOVA_REPO             = ENV['NOVA_REPO']             ||= "https://github.com/openstack/nova.git"
 SOLUM_BRANCH          = ENV['SOLUM_BRANCH']          ||= "master"
-SOLUM_REPO            = ENV['SOLUM_REPO']            ||= "https://github.com/stackforge/solum.git"
+SOLUM_REPO            = ENV['SOLUM_REPO']            ||= "https://github.com/openstack/solum.git"
 SOLUMCLIENT_BRANCH    = ENV['SOLUMCLIENT_BRANCH']    ||= "master"
-SOLUMCLIENT_REPO      = ENV['SOLUMCLIENT_REPO']      ||= "https://github.com/stackforge/python-solumclient.git"
+SOLUMCLIENT_REPO      = ENV['SOLUMCLIENT_REPO']      ||= "https://github.com/openstack/python-solumclient.git"
 SOLUM_IMAGE_FORMAT    = ENV['SOLUM_IMAGE_FORMAT']    ||= "docker"
 BARBICAN_BRANCH       = ENV['BARBICAN_BRANCH']       ||= "master"
 BARBICAN_REPO         = ENV['BARBICAN_REPO']         ||= "https://github.com/openstack/barbican.git"
@@ -154,6 +159,10 @@ Vagrant.configure("2") do |config|
 
   if ENV['BARBICANCLIENT']
     config.vm.synced_folder ENV['BARBICANCLIENT'], "/opt/stack/python-barbicanclient"
+  end
+
+  if ENV['NOVA']
+    config.vm.synced_folder ENV['NOVA'], "/opt/stack/nova"
   end
 
   if ENV['HEAT']
@@ -250,21 +259,29 @@ Vagrant.configure("2") do |config|
       SCRIPT
 
       devstack.vm.provision :shell, :inline => <<-SCRIPT
-        apt-get update
-        apt-get -y install git socat curl wget build-essential python-mysqldb \
+
+        # liberasurecode-dev is available in trusty-backports
+        echo "Uncommenting trust-backports from /etc/apt/sources.list"
+        sudo chmod 777 /etc/apt/sources.list
+        sudo echo "deb http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse" >> /etc/apt/sources.list
+        sudo echo "deb-src http://archive.ubuntu.com/ubuntu trusty-backports main restricted universe multiverse" >> /etc/apt/sources.list
+        sudo chmod 644 /etc/apt/sources.list
+
+        sudo apt-get update
+        sudo apt-get -y install git socat curl wget build-essential python-mysqldb \
             python-dev libssl-dev python-pip git-core libxml2-dev libxslt-dev \
             python-pip libmysqlclient-dev vim screen emacs libldap2-dev \
-            libsasl2-dev linux-image-extra-$(uname -r)
-        pip install virtualenv
-        pip install tox==1.6.1
-        pip install setuptools
-        pip install python-ldap
-        mkdir -p /opt/stack
-        chown vagrant /opt/stack
-        mkdir -p /var/log/solum/worker
-        chown vagrant /var/log/solum/worker
-        mkdir -p /var/log/solum/deployer
-        chown vagrant /var/log/solum/deployer
+            libsasl2-dev linux-image-extra-$(uname -r) liberasurecode-dev
+        sudo pip install virtualenv
+        sudo pip install tox==2.3.1
+        sudo pip install setuptools
+        sudo pip install python-ldap
+        sudo mkdir -p /opt/stack
+        sudo chown vagrant /opt/stack
+        sudo mkdir -p /var/log/solum/worker
+        sudo chown vagrant /var/log/solum/worker
+        sudo mkdir -p /var/log/solum/deployer
+        sudo chown vagrant /var/log/solum/deployer
       SCRIPT
     end
 
@@ -333,25 +350,26 @@ Vagrant.configure("2") do |config|
         useradd docker || echo "user docker already exists"
         usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/local.conf.docker > /home/vagrant/devstack/local.conf
+
+        echo 'Get Nova'
+        if [[ ! -d /opt/stack/nova ]]; then
+          su - vagrant -c "git clone #{NOVA_REPO} /opt/stack/nova"
+          cd /opt/stack/nova
+          su vagrant -c "git checkout #{NOVA_BRANCH}"
+        fi
+
+        # Set env variable required by tempest
+        export OS_TEST_TIMEOUT=1200
+
         pushd /home/vagrant/devstack
         export REQUIREMENTS_MODE=soft
         su vagrant -c "/home/vagrant/devstack/stack.sh"
         popd
+
         # just in case the rootwrap.d didn't make it.
-        [[ -e /etc/nova/rootwrap.d/docker.filters ]] || cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters  /etc/nova/rootwrap.d/docker.filters
+        sudo cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters /etc/nova/rootwrap.d/.
 
         . /home/vagrant/devstack/openrc admin
-        glance --os-image-api-version 1 image-list
-        if [[ $? == 0 ]]; then
-            docker pull solum/slugbuilder:latest
-            docker save solum/slugbuilder | glance --os-image-api-version 1 image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugbuilder"
-            docker pull solum/slugrunner:latest
-            docker save solum/slugrunner | glance --os-image-api-version 1 image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugrunner"
-            docker pull solum/slugtester:latest
-            docker save solum/slugtester | glance --os-image-api-version 1 image-create --is-public=True --container-format=docker --disk-format=raw --name "solum/slugtester"
-        else
-            echo There was a problem talking to Glance. You will need to pull and save solum/slugbuilder, solum/slugrunner, and solum/slugtester manually.
-        fi
 
       SCRIPT
     else
