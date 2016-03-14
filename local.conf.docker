@@ -8,8 +8,6 @@ SERVICE_PASSWORD=solum
 ADMIN_PASSWORD=solum
 NOVNC_FROM_PACKAGE=false
 SCREEN_LOGDIR=/opt/stack/logs/screen
-SOLUM_INSTALL_CEDARISH=False
-SOLUM_INSTALL_DOCKERFILE=False
 GIT_BASE=https://git.openstack.org
 
 VIRT_DRIVER=docker

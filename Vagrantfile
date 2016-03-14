@@ -91,25 +91,19 @@ FileUtils.mkdir(host_cache_path) unless File.exist?(host_cache_path)
 # Variables and fun things to make my life easier.
 ############
 
-#DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "73de4a42d96780b0a14f36e43dd6cb7934101209"
 DEVSTACK_BRANCH       = ENV['DEVSTACK_BRANCH']       ||= "master"
 DEVSTACK_REPO         = ENV['DEVSTACK_REPO']         ||= "https://github.com/openstack-dev/devstack.git"
-NOVADOCKER_BRANCH     = ENV['NOVADOCKER_BRANCH']     ||= "reconciling-changes"
-NOVADOCKER_REPO       = ENV['NOVADOCKER_REPO']       ||= "https://github.com/devdattakulkarni/nova-docker.git"
-#NOVADOCKER_BRANCH     = ENV['NOVADOCKER_BRANCH']     ||= "master"
-#NOVADOCKER_REPO       = ENV['NOVADOCKER_REPO']       ||= "https://github.com/openstack/nova-docker.git"
-NOVA_BRANCH           = ENV['NOVA_BRANCH']           ||= "e52d236a3f1740997890cad9d4726df01d5a7e5d"
-#NOVA_BRANCH           = ENV['NOVA_BRANCH']           ||= "master"
+NOVADOCKER_BRANCH     = ENV['NOVADOCKER_BRANCH']     ||= "7e55fd551ef4faf3499a8db056efc9535c20e434"
+NOVADOCKER_REPO       = ENV['NOVADOCKER_REPO']       ||= "https://github.com/openstack/nova-docker.git"
+NEUTRON_BRANCH        = ENV['NEUTRON_BRANCH']        ||= "775893bb7f61c4641acbcb4ae16edf16e0989c39"
+NEUTRON_REPO          = ENV['NEUTRON_REPO']          ||= "https://github.com/openstack/neutron.git"
+NOVA_BRANCH           = ENV['NOVA_BRANCH']           ||= "859ff4893f699b680fec4db7dedd3bec8c8d0a1c"
 NOVA_REPO             = ENV['NOVA_REPO']             ||= "https://github.com/openstack/nova.git"
 SOLUM_BRANCH          = ENV['SOLUM_BRANCH']          ||= "master"
 SOLUM_REPO            = ENV['SOLUM_REPO']            ||= "https://github.com/openstack/solum.git"
 SOLUMCLIENT_BRANCH    = ENV['SOLUMCLIENT_BRANCH']    ||= "master"
 SOLUMCLIENT_REPO      = ENV['SOLUMCLIENT_REPO']      ||= "https://github.com/openstack/python-solumclient.git"
 SOLUM_IMAGE_FORMAT    = ENV['SOLUM_IMAGE_FORMAT']    ||= "docker"
-BARBICAN_BRANCH       = ENV['BARBICAN_BRANCH']       ||= "master"
-BARBICAN_REPO         = ENV['BARBICAN_REPO']         ||= "https://github.com/openstack/barbican.git"
-BARBICANCLIENT_BRANCH = ENV['BARBICANCLIENT_BRANCH'] ||= "master"
-BARBICANCLIENT_REPO   = ENV['BARBICANCLIENT_REPO']   ||= "https://github.com/openstack/python-barbicanclient.git"
 WEBGUI_BRANCH         = ENV['WEBGUI_BRANCH']         ||= "master"
 WEBGUI_REPO           = ENV['WEBGUI_REPO']           ||= "https://github.com/rackerlabs/solum-m2demo-ui.git"
 
@@ -151,14 +145,6 @@ Vagrant.configure("2") do |config|
 
   if ENV['SOLUMCLIENT']
     config.vm.synced_folder ENV['SOLUMCLIENT'], "/opt/stack/python-solumclient"
-  end
-
-  if ENV['BARBICAN']
-    config.vm.synced_folder ENV['BARBICAN'], "/opt/stack/barbican"
-  end
-
-  if ENV['BARBICANCLIENT']
-    config.vm.synced_folder ENV['BARBICANCLIENT'], "/opt/stack/python-barbicanclient"
   end
 
   if ENV['NOVA']
@@ -295,24 +281,6 @@ Vagrant.configure("2") do |config|
       SCRIPT
     end
 
-    unless ENV['BARBICAN']
-      devstack.vm.provision :shell, :inline => <<-SCRIPT
-        echo su - vagrant -c "git clone #{BARBICAN_REPO} /opt/stack/barbican || echo /opt/stack/barbican already exists"
-        su - vagrant -c "git clone #{BARBICAN_REPO} /opt/stack/barbican || echo /opt/stack/barbican already exists"
-        cd /opt/stack/barbican
-        su vagrant -c "git checkout #{BARBICAN_BRANCH}"
-      SCRIPT
-    end
-
-    unless ENV['BARBICANCLIENT']
-      devstack.vm.provision :shell, :inline => <<-SCRIPT
-        echo su - vagrant -c "git clone #{BARBICANCLIENT_REPO} /opt/stack/python-barbicanclient || echo /opt/stack/python-barbicanclient already exists"
-        su - vagrant -c "git clone #{BARBICANCLIENT_REPO} /opt/stack/python-barbicanclient || echo /opt/stack/python-barbicanclient already exists"
-        cd /opt/stack/python-barbicanclient
-        su vagrant -c "git checkout #{BARBICANCLIENT_BRANCH}"
-      SCRIPT
-    end
-
     unless ENV['WEBGUI']
       devstack.vm.provision :shell, :inline => <<-SCRIPT
         su - vagrant -c "git clone #{WEBGUI_REPO} /opt/stack/solum-gui || echo /opt/stack/solum-gui already exists"
@@ -328,13 +296,6 @@ Vagrant.configure("2") do |config|
       su vagrant -c "touch local.conf"
       cp -R /opt/stack/solum/contrib/add-ons/lib/* /home/vagrant/devstack/lib/
       cp /opt/stack/solum/contrib/add-ons/extras.d/* /home/vagrant/devstack/extras.d/
-    SCRIPT
-
-    devstack.vm.provision :shell, :inline => <<-SCRIPT
-      cp -R /opt/stack/barbican/contrib/devstack/lib/* /home/vagrant/devstack/lib/
-      cp /opt/stack/barbican/contrib/devstack/extras.d/* /home/vagrant/devstack/extras.d/
-      cd /opt/stack/python-barbicanclient
-      python setup.py install
     SCRIPT
 
     if SOLUM_IMAGE_FORMAT == 'docker'
@@ -356,6 +317,13 @@ Vagrant.configure("2") do |config|
           su vagrant -c "git checkout #{NOVA_BRANCH}"
         fi
 
+        echo 'Get Neutron'
+        if [[ ! -d /opt/stack/neutron ]]; then
+          su - vagrant -c "git clone #{NEUTRON_REPO} /opt/stack/neutron"
+          cd /opt/stack/neutron
+          su vagrant -c "git checkout #{NEUTRON_BRANCH}"
+        fi
+
         # Set env variable required by tempest
         export OS_TEST_TIMEOUT=1200
 
@@ -363,9 +331,6 @@ Vagrant.configure("2") do |config|
         export REQUIREMENTS_MODE=soft
         su vagrant -c "/home/vagrant/devstack/stack.sh"
         popd
-
-        # just in case the rootwrap.d didn't make it.
-        sudo cp /opt/stack/nova-docker/etc/nova/rootwrap.d/docker.filters /etc/nova/rootwrap.d/.
 
         . /home/vagrant/devstack/openrc admin
 
