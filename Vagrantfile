@@ -131,9 +131,9 @@ Vagrant.configure("2") do |config|
     config.vm.synced_folder ENV['SOLUM'], "/opt/stack/solum_parent"
   end
 
-  if ENV['NOVADOCKER']
-    config.vm.synced_folder ENV['NOVADOCKER'], '/opt/stack/nova-docker'
-  end
+  #if ENV['NOVADOCKER']
+  #  config.vm.synced_folder ENV['NOVADOCKER'], '/opt/stack/nova-docker'
+  #end
 
   if ENV['SWIFT']
     config.vm.synced_folder ENV['SWIFT'], "/opt/stack/swift"
@@ -300,14 +300,14 @@ Vagrant.configure("2") do |config|
 
     if SOLUM_IMAGE_FORMAT == 'docker'
       devstack.vm.provision :shell, :inline => <<-SCRIPT
-        echo 'Set up Nova Docker Driver'
-        if [[ ! -d /opt/stack/nova-docker ]]; then
-          su - vagrant -c "git clone #{NOVADOCKER_REPO} /opt/stack/nova-docker"
-          cd /opt/stack/nova-docker
-          su vagrant -c "git checkout #{NOVADOCKER_BRANCH}"
-        fi
-        useradd docker || echo "user docker already exists"
-        usermod -a -G docker vagrant || echo "vagrant already in docker group"
+        #echo 'Set up Nova Docker Driver'
+        #if [[ ! -d /opt/stack/nova-docker ]]; then
+        #  su - vagrant -c "git clone #{NOVADOCKER_REPO} /opt/stack/nova-docker"
+        #  cd /opt/stack/nova-docker
+        #  su vagrant -c "git checkout #{NOVADOCKER_BRANCH}"
+        #fi
+        #useradd docker || echo "user docker already exists"
+        #usermod -a -G docker vagrant || echo "vagrant already in docker group"
         cat /vagrant/local.conf.docker > /home/vagrant/devstack/local.conf
 
         echo 'Get Nova'
